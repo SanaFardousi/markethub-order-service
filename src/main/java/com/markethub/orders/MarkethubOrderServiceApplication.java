@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class MarkethubOrderServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MarkethubOrderServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MarkethubOrderServiceApplication.class, args);
+    }
 
 }
