@@ -1,3 +1,10 @@
 spring:
   application:
     name: markethub-order-service
+  profiles:
+    default: local
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
