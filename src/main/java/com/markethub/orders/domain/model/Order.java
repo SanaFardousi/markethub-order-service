@@ -1,10 +1,13 @@
 package com.markethub.orders.domain.model;
 
 import com.markethub.orders.domain.payment.Payment;
+import com.markethub.orders.domain.pricing.AppliedPromotion;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -73,5 +76,8 @@ public class Order {
     private Payment payment;
 
     public void attachPayment(Payment payment) { this.payment = payment; }
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<AppliedPromotion> promotions = new ArrayList<>();
 
 }
