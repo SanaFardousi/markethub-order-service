@@ -1,5 +1,6 @@
 package com.markethub.orders.domain.model;
 
+import com.markethub.orders.domain.payment.Payment;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -67,5 +68,10 @@ public class Order {
         lines.add(line);
         line.setOrder(this);
     }
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Payment payment;
+
+    public void attachPayment(Payment payment) { this.payment = payment; }
 
 }
