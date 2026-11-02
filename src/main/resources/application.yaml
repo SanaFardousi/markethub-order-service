@@ -3,6 +3,11 @@ spring:
     name: markethub-order-service
   profiles:
     default: local
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
 management:
   endpoints:
     web:
