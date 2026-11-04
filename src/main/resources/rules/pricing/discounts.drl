@@ -1,0 +1,62 @@
+package rules.pricing;
+
+import java.math.BigDecimal;
+import com.markethub.orders.domain.pricing.*;
+import com.markethub.orders.domain.pricing.Basket;
+import com.markethub.orders.domain.pricing.Candidate;
+import com.markethub.orders.domain.pricing.CustomerFact;
+import com.markethub.orders.domain.pricing.Discount;
+
+rule "R1 basket tier 10%"
+    salience 20
+    activation-group "basket-tier"
+when
+    $b : Basket( subtotal >= 50.000B )
+then
+    insert( new Candidate("R1", "Basket 10%", $b.percentOf(10)) );
+end
+
+rule "R1 basket tier 5%"
+    salience 10
+    activation-group "basket-tier"
+when
+    $b : Basket( subtotal >= 20.000B )
+then
+    insert( new Candidate("R1", "Basket 5%", $b.percentOf(5)) );
+end
+
+rule "R2 welcome coupon"
+    salience 10
+when
+    $b : Basket( couponCode == "WELCOME10" )
+    CustomerFact( earlierOrders == 0 )
+then
+    BigDecimal tenPercent = $b.percentOf(10);
+    BigDecimal cap = new BigDecimal("5.000");
+    insert( new Candidate("R2", "WELCOME10 coupon", tenPercent.min(cap)) );
+end
+
+rule "R3 keep the larger of R1 and R2"
+    salience 0
+when
+    $big : Candidate( $a : amount )
+    $small : Candidate( this != $big, amount <= $a )
+then
+    delete( $small );
+end
+
+rule "Discount is the surviving candidate"
+    salience -10
+when
+    Candidate( $a : amount )
+then
+    insert( new Discount($a) );
+end
+
+rule "No discount when no candidate survives"
+    salience -10
+when
+    not Candidate()
+then
+    insert( new Discount(new BigDecimal("0.000")) );
+end

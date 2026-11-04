@@ -1,0 +1,22 @@
+package rules.pricing;
+
+import java.math.BigDecimal;
+import com.markethub.orders.domain.pricing.*;
+import com.markethub.orders.domain.pricing.Basket;
+import com.markethub.orders.domain.pricing.Candidate;
+import com.markethub.orders.domain.pricing.CustomerFact;
+import com.markethub.orders.domain.pricing.Discount;
+import com.markethub.orders.domain.payment.PaymentMethod;
+import com.markethub.orders.domain.pricing.Shipping;
+import com.markethub.orders.domain.pricing.FraudHold;
+
+rule "F1 fraud hold for large cash on delivery orders"
+    salience -30
+when
+    Basket( paymentMethod == PaymentMethod.COD, $s : subtotal )
+    Discount( $d : amount )
+    Shipping( $sh : amount )
+    eval( $s.subtract($d).add($sh).compareTo(new BigDecimal("100.000")) > 0 )
+then
+    insert( new FraudHold() );
+end

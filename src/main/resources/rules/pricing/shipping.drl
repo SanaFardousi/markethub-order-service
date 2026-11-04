@@ -1,0 +1,39 @@
+package rules.pricing;
+
+import java.math.BigDecimal;
+import com.markethub.orders.domain.pricing.*;
+import com.markethub.orders.domain.pricing.Basket;
+import com.markethub.orders.domain.pricing.Candidate;
+import com.markethub.orders.domain.pricing.CustomerFact;
+import com.markethub.orders.domain.pricing.Discount;
+import com.markethub.orders.domain.model.CustomerTier;
+import com.markethub.orders.domain.pricing.Shipping;
+
+rule "R4 free shipping for GOLD"
+    salience -20
+    activation-group "shipping"
+when
+    CustomerFact( tier == CustomerTier.GOLD )
+then
+    insert( new Shipping(new BigDecimal("0.000")) );
+end
+
+rule "R4 free shipping when subtotal minus discount is at least 15.000"
+    salience -21
+    activation-group "shipping"
+when
+    Basket( $s : subtotal )
+    Discount( $d : amount )
+    eval( $s.subtract($d).compareTo(new BigDecimal("15.000")) >= 0 )
+then
+    insert( new Shipping(new BigDecimal("0.000")) );
+end
+
+rule "R4 flat shipping"
+    salience -22
+    activation-group "shipping"
+when
+    Basket()
+then
+    insert( new Shipping(new BigDecimal("1.500")) );
+end
