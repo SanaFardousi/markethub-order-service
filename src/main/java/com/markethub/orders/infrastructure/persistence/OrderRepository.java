@@ -20,4 +20,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @EntityGraph(attributePaths = {"lines", "payment"})
     Optional<Order> findWithDetailsByOrderNumber(String orderNumber);
+
+    long countByCustomerId(Long customerId);
 }
