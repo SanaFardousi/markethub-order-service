@@ -46,7 +46,7 @@ public class PricingService {
         for (RequestedLine requested : requestedLines) {
             Product product = productsBySku.get(requested.sku());
             if (product == null || product.getStatus() != ProductStatus.ACTIVE) {
-                throw new ConflictException("Unknown or inactive SKU: " + requested.sku());
+                throw new ConflictException("PRODUCT_NOT_AVAILABLE", "Unknown or inactive SKU: " + requested.sku());
             }
             lines.add(new BasketLine(product.getSku(), requested.quantity(), product.getPriceAmount()));
         }
