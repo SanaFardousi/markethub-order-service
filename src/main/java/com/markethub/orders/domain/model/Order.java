@@ -2,6 +2,7 @@ package com.markethub.orders.domain.model;
 
 import com.markethub.orders.domain.payment.Payment;
 import com.markethub.orders.domain.pricing.AppliedPromotion;
+import com.markethub.orders.domain.state.OrderState;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -79,5 +80,21 @@ public class Order {
 
     @JdbcTypeCode(SqlTypes.JSON)
     private List<AppliedPromotion> promotions = new ArrayList<>();
+
+    public void approve(Instant now) { moveTo(OrderState.of(status).approve(this), now); }
+    public void ship(Instant now)    { moveTo(OrderState.of(status).ship(this), now); }
+    public void deliver(Instant now) { moveTo(OrderState.of(status).deliver(this), now); }
+    public void cancel(Instant now)  { moveTo(OrderState.of(status).cancel(this), now); }
+
+    public void requestRefund() {
+        if (payment != null) {
+            payment.markRefundedIfPaid();
+        }
+    }
+
+    private void moveTo(OrderState next, Instant now) {
+        this.status = next.status();
+        this.updatedAt = now;
+    }
 
 }

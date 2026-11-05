@@ -33,5 +33,11 @@ public abstract class Payment {
         this.amount = new Money(amount).amount();
         this.status = status;
     }
+
+    public void markRefundedIfPaid() {
+        if (status == PaymentStatus.AUTHORISED) {
+            status = PaymentStatus.REFUNDED;
+        }
+    }
 }
 
