@@ -39,5 +39,9 @@ public abstract class Payment {
             status = PaymentStatus.REFUNDED;
         }
     }
+
+    public abstract PaymentMethod method();
+    public String reference() { return null; }       // gateway reference: auth code or wallet transaction id
+    public String cardLast4() { return null; }
 }
 

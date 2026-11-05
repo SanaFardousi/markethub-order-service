@@ -19,4 +19,7 @@ public class WalletPayment extends Payment {
         super(order, amount, PaymentStatus.AUTHORISED);
         this.walletTxnId = walletTxnId;
     }
+
+    @Override public PaymentMethod method() { return PaymentMethod.WALLET; }
+    @Override public String reference() { return walletTxnId; }
 }
