@@ -33,5 +33,15 @@ public abstract class Payment {
         this.amount = new Money(amount).amount();
         this.status = status;
     }
+
+    public void markRefundedIfPaid() {
+        if (status == PaymentStatus.AUTHORISED) {
+            status = PaymentStatus.REFUNDED;
+        }
+    }
+
+    public abstract PaymentMethod method();
+    public String reference() { return null; }       // gateway reference: auth code or wallet transaction id
+    public String cardLast4() { return null; }
 }
 

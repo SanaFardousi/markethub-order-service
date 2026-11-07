@@ -5,6 +5,7 @@ import com.markethub.orders.application.RequestedLine;
 import com.markethub.orders.domain.pricing.PricingResult;
 import com.markethub.orders.web.dto.PricingRequest;
 import com.markethub.orders.web.dto.PricingResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +22,7 @@ public class PricingController {
     private final PricingService pricingService;
 
     @PostMapping("/preview")
-    public PricingResponse preview(@RequestBody PricingRequest request) {
+    public PricingResponse preview(@Valid @RequestBody PricingRequest request) {
         List<RequestedLine> lines = request.lines().stream()
             .map(l -> new RequestedLine(l.sku(), l.quantity()))
             .toList();

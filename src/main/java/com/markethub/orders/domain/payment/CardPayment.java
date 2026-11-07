@@ -20,4 +20,8 @@ public class CardPayment extends Payment {
         super(order, amount, PaymentStatus.AUTHORISED);
         this.cardLast4 = cardLast4; this.authCode = authCode;
     }
+
+    @Override public PaymentMethod method() { return PaymentMethod.CARD; }
+    @Override public String reference() { return authCode; }
+    @Override public String cardLast4() { return cardLast4; }
 }

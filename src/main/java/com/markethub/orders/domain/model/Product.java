@@ -36,4 +36,11 @@ public class Product {
         this.priceAmount = new Money(price).amount();
         this.status = status; this.updatedAt = now;
     }
+    public void update(String nameEn, String nameAr, String brand, String category,
+                       BigDecimal price, ProductStatus status, Instant now) {
+        this.nameEn = nameEn; this.nameAr = nameAr; this.brand = brand; this.category = category;
+        this.priceAmount = new Money(price).amount();
+        this.status = status; this.updatedAt = now;
+    }
+
 }
