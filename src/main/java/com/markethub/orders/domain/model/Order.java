@@ -2,6 +2,7 @@ package com.markethub.orders.domain.model;
 
 import com.markethub.orders.domain.payment.Payment;
 import com.markethub.orders.domain.pricing.AppliedPromotion;
+import com.markethub.orders.domain.pricing.PricingResult;
 import com.markethub.orders.domain.state.OrderState;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -95,6 +96,21 @@ public class Order {
     private void moveTo(OrderState next, Instant now) {
         this.status = next.status();
         this.updatedAt = now;
+    }
+
+    public void assignOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+
+    /** total = subtotal - discount + shipping, and it is never negative . */
+    public void applyPricing(PricingResult pricing) {
+        BigDecimal total = pricing.subtotal().subtract(pricing.discount()).add(pricing.shipping());
+        if (total.signum() < 0) {
+            throw new IllegalArgumentException("order total must not be negative");
+        }
+        this.subtotal = pricing.subtotal();
+        this.discount = pricing.discount();
+        this.shipping = pricing.shipping();
+        this.total = total;
+        this.promotions = new ArrayList<>(pricing.promotions());
     }
 
 }

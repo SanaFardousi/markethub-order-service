@@ -1,3 +1,4 @@
+
 package com.markethub.orders.application;
 
 import com.markethub.orders.domain.exception.ConflictException;
@@ -14,6 +15,7 @@ import com.markethub.orders.infrastructure.drools.DroolsPricingEngine;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
 import com.markethub.orders.infrastructure.persistence.ProductRepository;
+
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,32 +30,74 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PricingService {
+
     private final CustomerRepository customers;
     private final ProductRepository products;
     private final OrderRepository orders;
     private final DroolsPricingEngine engine;
 
-    @Transactional(readOnly = true)
-    public PricingResult price(Long customerId, String couponCode, PaymentMethod paymentMethod, List<RequestedLine> requestedLines){
-        Customer customer = customers.findById(customerId)
-            .orElseThrow(() -> new NotFoundException("Customer " + customers + " not found"));
 
-        Set<String> skus = requestedLines.stream().map(RequestedLine::sku).collect(Collectors.toSet());
+    @Transactional(readOnly = true)
+    public PricingResult price(
+        Long customerId,
+        String couponCode,
+        PaymentMethod paymentMethod,
+        List<RequestedLine> requestedLines) {
+
+        return priceBasket(customerId, couponCode, paymentMethod, requestedLines).pricing();
+    }
+
+    @Transactional(readOnly = true)
+    public PricedBasket priceBasket(
+        Long customerId,
+        String couponCode,
+        PaymentMethod paymentMethod,
+        List<RequestedLine> requestedLines) {
+
+        Customer customer = customers.findById(customerId)
+            .orElseThrow(() -> new NotFoundException(
+                "Customer " + customerId + " not found"));
+
+        Set<String> skus = requestedLines.stream()
+            .map(RequestedLine::sku)
+            .collect(Collectors.toSet());
+
         Map<String, Product> productsBySku = products.findBySkuIn(skus).stream()
             .collect(Collectors.toMap(Product::getSku, Function.identity()));
 
         List<BasketLine> lines = new ArrayList<>();
+
+        List<PricedBasket.PricedLine> pricedLines = new ArrayList<>();
+
         for (RequestedLine requested : requestedLines) {
+
             Product product = productsBySku.get(requested.sku());
+
             if (product == null || product.getStatus() != ProductStatus.ACTIVE) {
-                throw new ConflictException("PRODUCT_NOT_AVAILABLE", "Unknown or inactive SKU: " + requested.sku());
+                throw new ConflictException(
+                    "PRODUCT_NOT_AVAILABLE",
+                    "Unknown or inactive SKU: " + requested.sku());
             }
-            lines.add(new BasketLine(product.getSku(), requested.quantity(), product.getPriceAmount()));
+            lines.add(new BasketLine(
+                product.getSku(),
+                requested.quantity(),
+                product.getPriceAmount()));
+            pricedLines.add(new PricedBasket.PricedLine(
+                product.getSku(),
+                product.getNameEn(),
+                requested.quantity(),
+                product.getPriceAmount()));
         }
 
         Basket basket = new Basket(lines, couponCode, paymentMethod);
-        CustomerFact customerFact = new CustomerFact(customer.getTier(), orders.countByCustomerId(customerId));
-        return engine.price(basket, customerFact);
-    }
 
+        CustomerFact customerFact = new CustomerFact(
+            customer.getTier(),
+            orders.countByCustomerId(customerId));
+
+        // Calculate pricing and return both results together
+        PricingResult pricing = engine.price(basket, customerFact);
+
+        return new PricedBasket(pricing, pricedLines);
+    }
 }
