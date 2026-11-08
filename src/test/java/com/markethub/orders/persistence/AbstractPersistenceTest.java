@@ -1,5 +1,6 @@
 package com.markethub.orders.persistence;
 
+import com.markethub.orders.SharedMySql;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.test.context.ActiveProfiles;
@@ -12,13 +13,10 @@ import org.testcontainers.mysql.MySQLContainer;
 @ActiveProfiles("test")
 abstract class AbstractPersistenceTest {
 
-    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4");
-    static { MYSQL.start(); }
-
     @DynamicPropertySource
     static void datasource(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-        registry.add("spring.datasource.username", MYSQL::getUsername);
-        registry.add("spring.datasource.password", MYSQL::getPassword);
+        registry.add("spring.datasource.url", SharedMySql.INSTANCE::getJdbcUrl);
+        registry.add("spring.datasource.username", SharedMySql.INSTANCE::getUsername);
+        registry.add("spring.datasource.password", SharedMySql.INSTANCE::getPassword);
     }
 }

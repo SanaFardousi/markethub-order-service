@@ -30,7 +30,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.SimpleTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
-
+import static com.markethub.orders.OrderFixtures.NOW;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.ZoneOffset;
