@@ -37,10 +37,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
 @WebMvcTest(OrderController.class)
-@Import({ApiMapperImpl.class, FixedClockConfig.class})
+@Import({ApiMapperImpl.class, FixedClockConfig.class, ApiExceptionHandler.class})
 class OrderControllerTest {
 
     private static final String KEY = "3f6c0e2a-8d4b-4c1e-9a77-1b2c3d4e5f60";
@@ -125,6 +127,7 @@ class OrderControllerTest {
         place(json)
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+            .andDo(print())
             .andExpect(jsonPath("$.fieldErrors[?(@.field == '" + field + "')]").exists());
         verifyNoInteractions(orderService);
     }
