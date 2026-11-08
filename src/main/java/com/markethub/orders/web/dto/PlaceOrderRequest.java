@@ -1,15 +1,11 @@
 package com.markethub.orders.web.dto;
 
-import com.github.javaparser.quality.NotNull;
-import com.markethub.orders.domain.model.ProductStatus;
+import jakarta.validation.constraints.NotNull;
 import com.markethub.orders.domain.payment.PaymentMethod;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
-
-import java.math.BigDecimal;
 import java.util.List;
 
 public record PlaceOrderRequest(

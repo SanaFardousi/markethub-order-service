@@ -5,6 +5,7 @@ import com.markethub.orders.domain.payment.PaymentMethod;
 import com.markethub.orders.domain.pricing.*;
 import com.markethub.orders.infrastructure.drools.DroolsPricingEngine;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 
 class PricingRulesTest {
@@ -27,8 +29,8 @@ class PricingRulesTest {
         engine = new DroolsPricingEngine(KieServices.Factory.get().getKieClasspathContainer());
     }
 
-    // ---- the worked example (section 4.1) ----
     @Test
+    @DisplayName("the worked example from section 4.1 prices to exactly 29.700")
     void price_shouldReturn29_700_forTheWorkedExample() {
         Basket basket = new Basket(List.of(
             new BasketLine("MH-OUD-50", 2, new BigDecimal("12.500")),
@@ -36,11 +38,12 @@ class PricingRulesTest {
 
         PricingResult result = engine.price(basket, customer(CustomerTier.SILVER, 0));
 
-        assertThat(result.subtotal()).isEqualByComparingTo("33.000");
-        assertThat(result.discount()).isEqualByComparingTo("3.300");
-        assertThat(result.shipping()).isEqualByComparingTo("0.000");
-        assertThat(result.total()).isEqualByComparingTo("29.700");
-        assertThat(result.promotions()).extracting(AppliedPromotion::id).containsExactly("R2");
+        assertAll("worked example",
+            () -> assertThat(result.subtotal()).isEqualByComparingTo("33.000"),
+            () -> assertThat(result.discount()).isEqualByComparingTo("3.300"),
+            () -> assertThat(result.shipping()).isEqualByComparingTo("0.000"),
+            () -> assertThat(result.total()).isEqualByComparingTo("29.700"),
+            () -> assertThat(result.promotions()).extracting(AppliedPromotion::id).containsExactly("R2"));
     }
 
     // ---- R1: basket tier ----
