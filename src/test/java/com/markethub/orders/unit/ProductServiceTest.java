@@ -6,6 +6,7 @@ import com.markethub.orders.application.ProductView;
 import com.markethub.orders.application.ViewMapperImpl;
 import com.markethub.orders.domain.model.Product;
 import com.markethub.orders.domain.model.ProductStatus;
+import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,13 +31,15 @@ class ProductServiceTest {
 
     @Mock
     ProductRepository products;
+    @Mock
+    OutboxWriter outbox;
 
     private final Clock clock = Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC);
     private ProductService service;
 
     @BeforeEach
     void setUp() {
-        service = new ProductService(products, new ViewMapperImpl(), clock);
+        service = new ProductService(products, new ViewMapperImpl(), clock, outbox);
         lenient().when(products.saveAndFlush(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 

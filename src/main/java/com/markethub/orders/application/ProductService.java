@@ -1,6 +1,7 @@
 package com.markethub.orders.application;
 
 import com.markethub.orders.domain.model.Product;
+import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.ProductRepository;
 import com.markethub.orders.web.dto.ProductResponse;
 import com.markethub.orders.web.dto.ProductUpsertRequest;
@@ -21,6 +22,8 @@ public class ProductService {
     private final ViewMapper viewMapper;
     private final Clock clock;
 
+    private final OutboxWriter outbox;
+
     @Transactional
     public ProductView upsert(ProductCommand c) {
         Instant now = clock.instant();
@@ -30,6 +33,8 @@ public class ProductService {
         } else {
             product.update(c.nameEn(), c.nameAr(), c.brand(), c.category(), c.price(), c.status(), now);
         }
+        Product saved = products.saveAndFlush(product);   // flush first, so the version number is the new one
+        outbox.productUpserted(saved);
         return viewMapper.toView(products.saveAndFlush(product));   // flush so the response shows the new @Version
     }
 }

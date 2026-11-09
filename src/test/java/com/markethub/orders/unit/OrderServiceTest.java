@@ -12,6 +12,7 @@ import com.markethub.orders.domain.payment.PaymentMethod;
 import com.markethub.orders.domain.payment.PaymentStatus;
 import com.markethub.orders.domain.pricing.AppliedPromotion;
 import com.markethub.orders.domain.pricing.PricingResult;
+import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,17 +59,20 @@ class OrderServiceTest {
     OrderRepository orders;
     @Mock
     CustomerRepository customers;
+    @Mock
+    OutboxWriter outbox;
 
     private final Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
     private final FakeTransactionManager transactionManager = new FakeTransactionManager();
     private final Customer customer = new Customer("buyer@example.com", CustomerTier.SILVER, "KW");
     private OrderService service;
 
+
     @BeforeEach
     void setUp() {
         // same order as the fields declared in your OrderService
         service = new OrderService(pricingService, strategies, orders, customers,
-            new ViewMapperImpl(), new TransactionTemplate(transactionManager), clock);
+            new ViewMapperImpl(), new TransactionTemplate(transactionManager), clock, outbox);
     }
 
     // placing orders
