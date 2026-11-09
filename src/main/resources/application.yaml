@@ -13,6 +13,9 @@ spring:
       properties:
         enable.idempotence: true
         max.block.ms: 5000
+    consumer:
+      group-id: markethub-order-service
+      auto-offset-reset: earliest
 
 markethub:
   outbox:
