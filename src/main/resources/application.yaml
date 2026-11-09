@@ -7,6 +7,13 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  kafka:
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.block.ms: 5000
+
 markethub:
   outbox:
     poll-interval: PT0.5S
