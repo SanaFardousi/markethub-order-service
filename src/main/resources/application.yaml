@@ -7,6 +7,9 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  outbox:
+    poll-interval: PT0.5S
+
 
 management:
   endpoints:
