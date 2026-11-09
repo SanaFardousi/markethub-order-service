@@ -107,7 +107,6 @@ public class OrderService {
         order.cancel(clock.instant());
         Payment payment = order.getPayment();
         strategies.forMethod(payment.method()).refund(payment);
-        strategies.forMethod(payment.method()).refund(payment);
         outbox.orderStatusChanged(order, reason);
         return viewMapper.toView(order);
     }
@@ -115,7 +114,6 @@ public class OrderService {
     @Transactional
     public OrderView transition(String orderNumber, OrderAction action) {
         Order order = load(orderNumber);
-        action.applyTo(order, clock.instant());
         action.applyTo(order, clock.instant());
         outbox.orderStatusChanged(order, null);
         return viewMapper.toView(order);
