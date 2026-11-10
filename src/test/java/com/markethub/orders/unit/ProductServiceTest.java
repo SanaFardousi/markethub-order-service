@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +55,7 @@ class ProductServiceTest {
             () -> assertThat(view.sku()).isEqualTo("MH-NEW-1"),
             () -> assertThat(view.price()).isEqualByComparingTo("9.900"),
             () -> assertThat(view.currency()).isEqualTo("KWD"));
+        verify(outbox).productUpserted(any(Product.class));
     }
 
     @Test
@@ -70,5 +72,6 @@ class ProductServiceTest {
             () -> assertThat(existing.getPriceAmount()).isEqualByComparingTo("9.900"),
             () -> assertThat(existing.getStatus()).isEqualTo(ProductStatus.INACTIVE),
             () -> assertThat(existing.getUpdatedAt()).isEqualTo(NOW.plusSeconds(3600)));
+        verify(outbox).productUpserted(any(Product.class));
     }
 }
