@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.VersionType;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import com.markethub.orders.domain.model.Product;
@@ -76,6 +77,19 @@ public class ProductIndexer {
             if (item.error() != null && item.status() != 409) {
                 log.warn("Could not index {}: {}", item.id(), item.error().reason());
             }
+        }
+    }
+
+    public void index(ProductDocument doc) throws IOException {
+        try {
+            client.index(i -> i.index(ALIAS).id(doc.sku()).document(doc)
+                .version(doc.version()).versionType(VersionType.External));
+        } catch (ElasticsearchException e) {
+            if (e.status() == 409) {
+                log.info("Ignoring stale or repeated event for {} (version {})", doc.sku(), doc.version());
+                return;
+            }
+            throw e;
         }
     }
 }
