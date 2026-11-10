@@ -2,10 +2,21 @@ package com.markethub.orders.infrastructure.search;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.VersionType;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
+import com.markethub.orders.domain.model.Product;
 import com.markethub.orders.infrastructure.persistence.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -38,4 +49,33 @@ public class ProductIndexer {
         return created;
     }
 
+    public int indexAll() throws IOException {
+        int total = 0;
+        Pageable pageable = PageRequest.of(0, BATCH_SIZE, Sort.by("id"));
+        Page<Product> page;
+        do {
+            page = products.findAll(pageable);
+            if (!page.isEmpty()) {
+                List<BulkOperation> operations = page.getContent().stream()
+                    .map(ProductDocument::from)
+                    .map(d -> BulkOperation.of(op -> op.index(i -> i
+                        .index(ALIAS).id(d.sku()).document(d)
+                        .version(d.version()).versionType(VersionType.External))))
+                    .toList();
+                BulkResponse response = client.bulk(b -> b.operations(operations));
+                report(response);
+                total += operations.size();
+            }
+            pageable = page.nextPageable();
+        } while (page.hasNext());
+        return total;
+    }
+
+    private void report(BulkResponse response) {
+        for (BulkResponseItem item : response.items()) {
+            if (item.error() != null && item.status() != 409) {
+                log.warn("Could not index {}: {}", item.id(), item.error().reason());
+            }
+        }
+    }
 }
