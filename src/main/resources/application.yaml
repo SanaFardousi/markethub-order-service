@@ -26,6 +26,8 @@ spring:
 markethub:
   outbox:
     poll-interval: PT0.5S
+  search:
+    url: ${ELASTICSEARCH_URL:http://localhost:9200}
 
 
 management:
