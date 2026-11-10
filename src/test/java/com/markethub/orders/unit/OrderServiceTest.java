@@ -12,6 +12,7 @@ import com.markethub.orders.domain.payment.PaymentMethod;
 import com.markethub.orders.domain.payment.PaymentStatus;
 import com.markethub.orders.domain.pricing.AppliedPromotion;
 import com.markethub.orders.domain.pricing.PricingResult;
+import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,17 +59,20 @@ class OrderServiceTest {
     OrderRepository orders;
     @Mock
     CustomerRepository customers;
+    @Mock
+    OutboxWriter outbox;
 
     private final Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
     private final FakeTransactionManager transactionManager = new FakeTransactionManager();
     private final Customer customer = new Customer("buyer@example.com", CustomerTier.SILVER, "KW");
     private OrderService service;
 
+
     @BeforeEach
     void setUp() {
         // same order as the fields declared in your OrderService
         service = new OrderService(pricingService, strategies, orders, customers,
-            new ViewMapperImpl(), new TransactionTemplate(transactionManager), clock);
+            new ViewMapperImpl(), new TransactionTemplate(transactionManager), clock, outbox);
     }
 
     // placing orders
@@ -93,6 +97,8 @@ class OrderServiceTest {
             () -> assertThat(view.total()).isEqualByComparingTo("29.700"),
             () -> assertThat(view.payment().cardLast4()).isEqualTo("1111"),
             () -> assertThat(transactionManager.commits).isEqualTo(1));
+        verify(outbox).orderPlaced(any(Order.class));
+        verify(outbox).orderStatusChanged(any(Order.class), isNull());
     }
 
     @Test
@@ -109,6 +115,7 @@ class OrderServiceTest {
         assertAll(
             () -> assertThat(view.status()).isEqualTo(OrderStatus.ON_HOLD),
             () -> assertThat(view.payment().status()).isEqualTo(PaymentStatus.PENDING));
+        verify(outbox).orderPlaced(any(Order.class));
     }
 
     @Test
@@ -126,6 +133,7 @@ class OrderServiceTest {
         assertAll(
             () -> assertThat(transactionManager.rollbacks).isEqualTo(1),
             () -> assertThat(transactionManager.commits).isZero());
+        verifyNoInteractions(outbox);
     }
 
     @Test
@@ -142,6 +150,7 @@ class OrderServiceTest {
 
         assertThat(view.orderNumber()).isEqualTo("MH-2026-000001");
         verifyNoInteractions(strategies);
+        verifyNoInteractions(outbox);
     }
 
     @Test
@@ -157,6 +166,7 @@ class OrderServiceTest {
             .isInstanceOfSatisfying(ConflictException.class,
                 e -> assertThat(e.getCode()).isEqualTo("IDEMPOTENCY_KEY_REUSED"));
         verifyNoInteractions(strategies);
+        verifyNoInteractions(outbox);
     }
 
     @Test
@@ -168,6 +178,7 @@ class OrderServiceTest {
         when(orders.findWithDetailsByIdempotencyKey("key-6")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.placeOrder(command)).isInstanceOf(DataIntegrityViolationException.class);
+        verifyNoInteractions(outbox);
     }
 
     // ---------- reading, cancelling, moving orders ----------
@@ -191,6 +202,7 @@ class OrderServiceTest {
         assertAll(
             () -> assertThat(view.status()).isEqualTo(OrderStatus.CANCELLED),
             () -> assertThat(view.payment().status()).isEqualTo(PaymentStatus.REFUNDED));
+        verify(outbox).orderStatusChanged(order, "changed my mind");
     }
 
     @Test
@@ -202,6 +214,7 @@ class OrderServiceTest {
         assertThatThrownBy(() -> service.cancel("MH-2026-000001", "too late"))
             .isInstanceOf(IllegalTransitionException.class);
         verifyNoInteractions(strategies);
+        verifyNoInteractions(outbox);
     }
 
     @Test
@@ -212,6 +225,7 @@ class OrderServiceTest {
         OrderView view = service.transition("MH-2026-000001", OrderAction.SHIP);
 
         assertThat(view.status()).isEqualTo(OrderStatus.SHIPPED);
+        verify(outbox).orderStatusChanged(order, null);
     }
 
     @Test

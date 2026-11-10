@@ -7,6 +7,26 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  kafka:
+    producer:
+      acks: all
+      value-serializer: com.markethub.orders.infrastructure.kafka.StringOrBytesSerializer
+      properties:
+        enable.idempotence: true
+        max.block.ms: 5000
+    consumer:
+      group-id: markethub-order-service
+      auto-offset-reset: earliest
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: com.markethub.orders.infrastructure.kafka.JsonTextDeserializer
+    listener:
+      ack-mode: RECORD
+
+markethub:
+  outbox:
+    poll-interval: PT0.5S
+
 
 management:
   endpoints:

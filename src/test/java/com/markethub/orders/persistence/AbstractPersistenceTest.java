@@ -11,6 +11,7 @@ import org.testcontainers.mysql.MySQLContainer;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
+
 abstract class AbstractPersistenceTest {
 
     @DynamicPropertySource

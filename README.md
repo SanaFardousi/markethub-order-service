@@ -17,3 +17,15 @@
 **Builder.** Tests need orders in many shapes: shipped, on hold, with ten lines, and so on. `OrderFixtures.anOrder().withStatus(SHIPPED).build()` starts from sensible defaults and lets each test change only the detail it cares about. Without it, every test would repeat a long constructor call with many arguments, and a single change to the `Order` constructor would break many tests at once.
 
 **Where a pattern was deliberately not used.** There is only one payment gateway implementation, so no factory or strategy was added for choosing between gateways. For a single option, that would be over-engineering. If a second provider is ever added, that is the time to introduce one.
+
+## Events and delivery guarantees
+
+**Why an outbox.** MySQL and Kafka can't be committed together. Writing to Kafka inside the transaction risks announcing a rolled-back order; writing after risks losing the event on a crash. Instead, each change writes an outbox_event row in the same transaction. OutboxRelay publishes those rows separately.
+
+**Delivery is at-least-once.** The relay marks a row published only after Kafka acknowledges it. If the app stops in between, the row is sent again on the next run. No event is lost, but duplicates are possible, so consumers must tolerate them.
+
+**What idempotence protects against.** With enable.idempotence=true, the producer tags each message with a producer id and sequence number. On retry, the broker recognises the repeat and keeps one copy, preserving order within a partition. With acks=all, an acknowledged message is stored by all in-sync replicas.
+
+**What it does not protect against.** Idempotence only covers retries within one producer session. A restart gives the producer a new identity, so the broker sees a new message. It also doesn't prevent duplicates from two relay instances or a consumer replaying after a failure. Consumers handle this by ignoring events they've already seen.
+
+**Ordering.** Kafka only keeps order within a partition, and the message key picks the partition. Order events use the order number; product events use the SKU. The relay sends one event at a time, oldest first, stopping at the first failure so a later event can never overtake an earlier one.

@@ -6,6 +6,7 @@ import com.markethub.orders.application.ProductView;
 import com.markethub.orders.application.ViewMapperImpl;
 import com.markethub.orders.domain.model.Product;
 import com.markethub.orders.domain.model.ProductStatus;
+import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,13 +32,15 @@ class ProductServiceTest {
 
     @Mock
     ProductRepository products;
+    @Mock
+    OutboxWriter outbox;
 
     private final Clock clock = Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC);
     private ProductService service;
 
     @BeforeEach
     void setUp() {
-        service = new ProductService(products, new ViewMapperImpl(), clock);
+        service = new ProductService(products, new ViewMapperImpl(), clock, outbox);
         lenient().when(products.saveAndFlush(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
@@ -51,6 +55,7 @@ class ProductServiceTest {
             () -> assertThat(view.sku()).isEqualTo("MH-NEW-1"),
             () -> assertThat(view.price()).isEqualByComparingTo("9.900"),
             () -> assertThat(view.currency()).isEqualTo("KWD"));
+        verify(outbox).productUpserted(any(Product.class));
     }
 
     @Test
@@ -67,5 +72,6 @@ class ProductServiceTest {
             () -> assertThat(existing.getPriceAmount()).isEqualByComparingTo("9.900"),
             () -> assertThat(existing.getStatus()).isEqualTo(ProductStatus.INACTIVE),
             () -> assertThat(existing.getUpdatedAt()).isEqualTo(NOW.plusSeconds(3600)));
+        verify(outbox).productUpserted(any(Product.class));
     }
 }

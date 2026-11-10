@@ -8,6 +8,7 @@ import com.markethub.orders.domain.model.OrderLine;
 import com.markethub.orders.domain.model.OrderStatus;
 import com.markethub.orders.domain.payment.Payment;
 import com.markethub.orders.domain.pricing.PricingResult;
+import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
 import com.markethub.orders.infrastructure.persistence.OrderSummary;
@@ -42,6 +43,8 @@ public class OrderService {
     private final TransactionTemplate transactions;
     private final Clock clock;
 
+    private final OutboxWriter outbox;
+
     public OrderView placeOrder(PlaceOrderCommand command) {
         try {
             return transactions.execute(status -> create(command));
@@ -66,7 +69,9 @@ public class OrderService {
         order.assignOrderNumber(finalNumber(order.getId()));
 
         Payment payment = strategies.forMethod(command.paymentMethod()).authorise(order, command.card());
-        order.attachPayment(payment);                  // a decline throws, and the whole transaction rolls back
+        order.attachPayment(payment);
+        outbox.orderPlaced(order);
+        outbox.orderStatusChanged(order, null);
         return viewMapper.toView(order);
     }
 
@@ -102,6 +107,7 @@ public class OrderService {
         order.cancel(clock.instant());
         Payment payment = order.getPayment();
         strategies.forMethod(payment.method()).refund(payment);
+        outbox.orderStatusChanged(order, reason);
         return viewMapper.toView(order);
     }
 
@@ -109,6 +115,7 @@ public class OrderService {
     public OrderView transition(String orderNumber, OrderAction action) {
         Order order = load(orderNumber);
         action.applyTo(order, clock.instant());
+        outbox.orderStatusChanged(order, null);
         return viewMapper.toView(order);
     }
 
