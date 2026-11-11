@@ -1,5 +1,6 @@
 package com.markethub.orders.config;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +16,7 @@ public class ExecutorConfig {
     public static final int THREADS = 12;
     public static final int QUEUE_SIZE = 100;
 
-    @Bean
+    @Bean(destroyMethod = "")
     public ThreadPoolExecutor carrierExecutor() {
         AtomicInteger counter = new AtomicInteger();
         ThreadFactory names = task -> {
@@ -25,5 +26,15 @@ public class ExecutorConfig {
         };
         return new ThreadPoolExecutor(THREADS, THREADS, 0L, TimeUnit.MILLISECONDS,
             new ArrayBlockingQueue<>(QUEUE_SIZE), names, new ThreadPoolExecutor.AbortPolicy());
+    }
+
+    @Bean
+    public DisposableBean carrierExecutorShutdown(ThreadPoolExecutor carrierExecutor) {
+        return () -> {
+            carrierExecutor.shutdown();                                       // stop accepting new work
+            if (!carrierExecutor.awaitTermination(5, TimeUnit.SECONDS)) {     // let running quotes finish
+                carrierExecutor.shutdownNow();                                // then interrupt what is left
+            }
+        };
     }
 }
