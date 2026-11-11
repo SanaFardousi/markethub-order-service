@@ -20,11 +20,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -313,5 +316,30 @@ class OrderServiceTest {
         @Override public TransactionStatus getTransaction(TransactionDefinition definition) { return new SimpleTransactionStatus(); }
         @Override public void commit(TransactionStatus status) { commits++; }
         @Override public void rollback(TransactionStatus status) { rollbacks++; }
+    }
+
+    @Test
+    @DisplayName("the status change is flushed before any money moves")
+    void cancel_shouldFlushBeforeRefunding() {
+        Order order = anOrder().withStatus(OrderStatus.CONFIRMED).build();
+        when(orders.findWithDetailsByOrderNumber("MH-2026-000001")).thenReturn(Optional.of(order));
+        when(strategies.forMethod(PaymentMethod.CARD)).thenReturn(strategy);
+
+        service.cancel("MH-2026-000001", "changed my mind");
+
+        InOrder inOrder = inOrder(orders, strategy);
+        inOrder.verify(orders).flush();
+        inOrder.verify(strategy).refund(order.getPayment());
+    }
+
+    @Test
+    void cancel_shouldRefundNothingAndWriteNoEvent_whenTheStatusChangeLosesARace() {
+        Order order = anOrder().withStatus(OrderStatus.CONFIRMED).build();
+        when(orders.findWithDetailsByOrderNumber("MH-2026-000001")).thenReturn(Optional.of(order));
+        doThrow(new ObjectOptimisticLockingFailureException(Order.class, 1L)).when(orders).flush();
+
+        assertThatThrownBy(() -> service.cancel("MH-2026-000001", "too late"))
+            .isInstanceOf(OptimisticLockingFailureException.class);
+        verifyNoInteractions(strategies, outbox);
     }
 }

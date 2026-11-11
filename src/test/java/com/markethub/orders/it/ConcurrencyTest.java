@@ -7,6 +7,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -80,5 +81,38 @@ class ConcurrencyTest extends AbstractIntegrationTest {
                 Long.class, key)).isEqualTo(1),
             () -> assertThat(countOf("payment")).isEqualTo(1),          // charged once
             () -> assertThat(countOf("outbox_event")).isEqualTo(2));    // events written once
+    }
+
+    @RepeatedTest(10)
+    @DisplayName("10 ships and 10 cancels race for one order: exactly one wins, the rest get 409")
+    void lifecycle_shouldLetExactlyOneActionWin_whenShipAndCancelRaceForTheSameOrder() throws Exception {
+        long customer = customerId("customer01@example.com");
+        String number = placeCardOrder(customer);
+
+        List<Callable<Integer>> actions = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            actions.add(() -> statusOf(post("/api/v1/orders/" + number + "/transitions"), "{\"action\": \"SHIP\"}"));
+            actions.add(() -> statusOf(post("/api/v1/orders/" + number + "/cancel"), "{\"reason\": \"changed my mind\"}"));
+        }
+
+        List<Integer> statuses = runTogether(actions);
+
+        String orderStatus = jdbc.queryForObject("select status from orders where order_number = ?", String.class, number);
+        String paymentStatus = jdbc.queryForObject(
+            "select p.status from payment p join orders o on o.id = p.order_id where o.order_number = ?",
+            String.class, number);
+        Long events = jdbc.queryForObject("select count(*) from outbox_event where aggregate_id = ?", Long.class, number);
+
+        assertAll(
+            () -> assertThat(Collections.frequency(statuses, 200)).isEqualTo(1),
+            () -> assertThat(Collections.frequency(statuses, 409)).isEqualTo(19),
+            () -> assertThat(orderStatus).isIn("SHIPPED", "CANCELLED"),
+            () -> assertThat(paymentStatus).isEqualTo("CANCELLED".equals(orderStatus) ? "REFUNDED" : "AUTHORISED"),
+            () -> assertThat(events).isEqualTo(3));       // OrderPlaced, OrderConfirmed, and only the winner's event
+    }
+
+    private int statusOf(MockHttpServletRequestBuilder request, String json) throws Exception {
+        return mvc.perform(request.contentType(MediaType.APPLICATION_JSON).content(json))
+            .andReturn().getResponse().getStatus();
     }
 }
