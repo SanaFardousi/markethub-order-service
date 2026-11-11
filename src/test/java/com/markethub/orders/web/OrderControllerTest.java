@@ -167,7 +167,9 @@ class OrderControllerTest {
             Arguments.of(new OptimisticLockingFailureException("stale"), 409, "CONCURRENT_MODIFICATION"),
             Arguments.of(new PaymentDeclinedException("declined"), 422, "PAYMENT_DECLINED"),
             Arguments.of(new BadRequestException("bad"), 400, "VALIDATION_FAILED"),
-            Arguments.of(new IllegalStateException("boom"), 500, "INTERNAL_ERROR"));
+            Arguments.of(new IllegalStateException("boom"), 500, "INTERNAL_ERROR"),
+            Arguments.of(new NoCarrierAvailableException(), 503, "NO_CARRIER_AVAILABLE"));
+
     }
 
     @ParameterizedTest(name = "{0} gives {1} {2}")

@@ -1,9 +1,6 @@
 package com.markethub.orders.web;
 
-import com.markethub.orders.domain.exception.BadRequestException;
-import com.markethub.orders.domain.exception.ConflictException;
-import com.markethub.orders.domain.exception.NotFoundException;
-import com.markethub.orders.domain.exception.PaymentDeclinedException;
+import com.markethub.orders.domain.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -81,5 +78,10 @@ public class ApiExceptionHandler {
                                            List<ApiError.FieldIssue> fieldErrors) {
         String traceId = UUID.randomUUID().toString().substring(0, 8);
         return ResponseEntity.status(status).body(new ApiError(code, message, traceId, clock.instant(), fieldErrors));
+    }
+
+    @ExceptionHandler(NoCarrierAvailableException.class)
+    public ResponseEntity<ApiError> noCarrier(NoCarrierAvailableException ex) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "NO_CARRIER_AVAILABLE", ex.getMessage(), List.of());
     }
 }
