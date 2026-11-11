@@ -105,6 +105,7 @@ public class OrderService {
     public OrderView cancel(String orderNumber, String reason) {
         Order order = load(orderNumber);
         order.cancel(clock.instant());
+        orders.flush();
         Payment payment = order.getPayment();
         strategies.forMethod(payment.method()).refund(payment);
         outbox.orderStatusChanged(order, reason);
