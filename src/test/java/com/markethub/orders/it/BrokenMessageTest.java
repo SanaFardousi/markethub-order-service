@@ -24,8 +24,10 @@ class BrokenMessageTest extends AbstractIntegrationTest {
         String sku = "TEST-DLT-" + UUID.randomUUID();       // one key means one partition, so the broken message really is "in front"
         String broken = "{ this is not json";
         String valid = """
-                {"eventId": "%s", "type": "ProductUpserted", "occurredAt": "2026-11-01T10:00:00Z",
-                 "aggregateId": "%s", "payload": {"sku": "%s", "version": 1}}"""
+        {"eventId": "%s", "type": "ProductUpserted", "occurredAt": "2026-11-01T10:00:00Z",
+         "aggregateId": "%s",
+         "payload": {"sku": "%s", "nameEn": "Test", "nameAr": "test", "brand": "MAISON", "category": "fragrance",
+                     "price": "1.000", "currency": "KWD", "status": "ACTIVE", "version": 1}}"""
             .formatted(UUID.randomUUID(), sku, sku);
 
         try (Collector deadLetters = new Collector(Topics.PRODUCTS_DLT)) {
