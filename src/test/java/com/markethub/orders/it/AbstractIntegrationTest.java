@@ -1,6 +1,7 @@
 package com.markethub.orders.it;
 
 import com.jayway.jsonpath.JsonPath;
+import com.markethub.orders.SharedElasticsearch;
 import com.markethub.orders.SharedKafka;
 import com.markethub.orders.SharedMySql;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +34,8 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.datasource.url", SharedMySql.INSTANCE::getJdbcUrl);
         registry.add("spring.datasource.username", SharedMySql.INSTANCE::getUsername);
         registry.add("spring.datasource.password", SharedMySql.INSTANCE::getPassword);
+        registry.add("markethub.search.url", SharedElasticsearch::url);
+        registry.add("spring.elasticsearch.uris", SharedElasticsearch::url);
     }
 
     @BeforeEach

@@ -29,3 +29,11 @@
 **What it does not protect against.** Idempotence only covers retries within one producer session. A restart gives the producer a new identity, so the broker sees a new message. It also doesn't prevent duplicates from two relay instances or a consumer replaying after a failure. Consumers handle this by ignoring events they've already seen.
 
 **Ordering.** Kafka only keeps order within a partition, and the message key picks the partition. Order events use the order number; product events use the SKU. The relay sends one event at a time, oldest first, stopping at the first failure so a later event can never overtake an earlier one.
+
+## Search
+
+**Why price is not a float.** Floating point numbers cannot represent most decimals exactly, so a price such as 9.900 could be stored slightly off and give wrong results at the edges of a price filter. Prices are indexed as `scaled_float` with a factor of 1000: Elasticsearch stores the price times 1000 as a whole number, which is exact for KWD's three decimals.
+
+**Freshness.** Search lags behind MySQL by a second or two. A product change travels from MySQL through the outbox and Kafka to Elasticsearch, and becomes visible after the next index refresh. Tests wait for this with Awaitility instead of sleeping.
+
+**Search is a copy, never the source.** If the Elasticsearch data is deleted, the application recreates the index and reloads every product from MySQL on the next start.

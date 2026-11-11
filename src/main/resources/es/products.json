@@ -1,0 +1,16 @@
+{
+  "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "sku":      { "type": "keyword" },
+      "name_en":  { "type": "text", "analyzer": "english" },
+      "name_ar":  { "type": "text", "analyzer": "arabic" },
+      "brand":    { "type": "keyword" },
+      "category": { "type": "keyword" },
+      "status":   { "type": "keyword" },
+      "price":    { "type": "scaled_float", "scaling_factor": 1000 },
+      "version":  { "type": "long" }
+    }
+  }
+}
