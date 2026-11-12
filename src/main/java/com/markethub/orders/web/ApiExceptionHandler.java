@@ -17,6 +17,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.MDC;
 
 @Slf4j
 @RestControllerAdvice
@@ -76,7 +77,10 @@ public class ApiExceptionHandler {
 
     private ResponseEntity<ApiError> build(HttpStatus status, String code, String message,
                                            List<ApiError.FieldIssue> fieldErrors) {
-        String traceId = UUID.randomUUID().toString().substring(0, 8);
+        String traceId = MDC.get(RequestIdFilter.MDC_KEY);
+        if (traceId == null) {
+            traceId = UUID.randomUUID().toString().substring(0, 8);   // only when the filter did not run
+        }
         return ResponseEntity.status(status).body(new ApiError(code, message, traceId, clock.instant(), fieldErrors));
     }
 
