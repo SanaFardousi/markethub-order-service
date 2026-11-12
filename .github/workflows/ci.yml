@@ -13,7 +13,7 @@ jobs:
 
       - name: Restore Certificate
         run: |
-          echo "${{ secrets.NETWORK_CERTIFICATE }}" | base64 --decode > ./certificate.crt
+          echo "${{ secrets.NETWORK_CERTIFICATE }}" | base64 --decode > company-root-ca.cer
 
       - name: Set up JDK 21 with a Maven cache
         uses: actions/setup-java@v5
