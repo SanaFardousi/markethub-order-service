@@ -3,3 +3,7 @@ spring:
     properties:
       hibernate:
         generate_statistics: true
+management:
+  endpoint:
+    health:
+      show-components: always

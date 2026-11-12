@@ -34,4 +34,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: MarketHub Order & Search Service
+    description: Prices baskets with Drools, takes orders, publishes events to Kafka and serves product search
+
+logging:
+  pattern:
+    level: "%5p [%X{traceId:-}]"
