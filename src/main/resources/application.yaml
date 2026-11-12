@@ -3,6 +3,8 @@ spring:
     name: markethub-order-service
   profiles:
     default: local
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URL:http://localhost:9200}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -34,4 +36,32 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
+    access:
+      default: unrestricted
+  endpoint:
+    health:
+      probes:
+        enabled: true
+    prometheus:
+      access: unrestricted
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  simple:
+    metrics:
+      export:
+        enabled: false
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: MarketHub Order & Search Service
+    description: Prices baskets with Drools, takes orders, publishes events to Kafka and serves product search
+
+logging:
+  pattern:
+    level: "%5p [%X{traceId:-}]"

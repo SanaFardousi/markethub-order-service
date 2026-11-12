@@ -15,6 +15,8 @@ import com.markethub.orders.domain.pricing.PricingResult;
 import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,13 +71,13 @@ class OrderServiceTest {
     private final FakeTransactionManager transactionManager = new FakeTransactionManager();
     private final Customer customer = new Customer("buyer@example.com", CustomerTier.SILVER, "KW");
     private OrderService service;
-
+    private final MeterRegistry meterRegistry = new SimpleMeterRegistry();
 
     @BeforeEach
     void setUp() {
         // same order as the fields declared in your OrderService
         service = new OrderService(pricingService, strategies, orders, customers,
-            new ViewMapperImpl(), new TransactionTemplate(transactionManager), clock, outbox);
+            new ViewMapperImpl(), new TransactionTemplate(transactionManager), clock, outbox, meterRegistry);
     }
 
     // placing orders
@@ -100,6 +102,7 @@ class OrderServiceTest {
             () -> assertThat(view.total()).isEqualByComparingTo("29.700"),
             () -> assertThat(view.payment().cardLast4()).isEqualTo("1111"),
             () -> assertThat(transactionManager.commits).isEqualTo(1));
+        assertThat(meterRegistry.counter("markethub.orders.placed", "method", "CARD", "outcome", "success").count()).isEqualTo(1.0);
         verify(outbox).orderPlaced(any(Order.class));
         verify(outbox).orderStatusChanged(any(Order.class), isNull());
     }
@@ -136,6 +139,7 @@ class OrderServiceTest {
         assertAll(
             () -> assertThat(transactionManager.rollbacks).isEqualTo(1),
             () -> assertThat(transactionManager.commits).isZero());
+        assertThat(meterRegistry.counter("markethub.orders.placed", "method", "CARD", "outcome", "declined").count()).isEqualTo(1.0);
         verifyNoInteractions(outbox);
     }
 
@@ -151,7 +155,8 @@ class OrderServiceTest {
 
         OrderView view = service.placeOrder(command);
 
-        assertThat(view.orderNumber()).isEqualTo("MH-2026-000001");
+        assertThat(view.orderNumber()).isEqualTo("MH-2026-000001");assertThat(meterRegistry.counter("markethub.orders.placed", "method", "CARD", "outcome", "replayed").count()).isEqualTo(1.0);
+
         verifyNoInteractions(strategies);
         verifyNoInteractions(outbox);
     }
@@ -168,6 +173,7 @@ class OrderServiceTest {
         assertThatThrownBy(() -> service.placeOrder(command))
             .isInstanceOfSatisfying(ConflictException.class,
                 e -> assertThat(e.getCode()).isEqualTo("IDEMPOTENCY_KEY_REUSED"));
+        assertThat(meterRegistry.counter("markethub.orders.placed", "method", "CARD", "outcome", "failed").count()).isEqualTo(1.0);
         verifyNoInteractions(strategies);
         verifyNoInteractions(outbox);
     }

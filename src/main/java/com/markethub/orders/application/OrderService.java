@@ -2,6 +2,7 @@ package com.markethub.orders.application;
 
 import com.markethub.orders.domain.exception.ConflictException;
 import com.markethub.orders.domain.exception.NotFoundException;
+import com.markethub.orders.domain.exception.PaymentDeclinedException;
 import com.markethub.orders.domain.model.Order;
 import com.markethub.orders.domain.model.OrderAction;
 import com.markethub.orders.domain.model.OrderLine;
@@ -30,6 +31,7 @@ import java.time.Instant;
 import java.time.Year;
 import java.util.HexFormat;
 import java.util.UUID;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @Service
 @RequiredArgsConstructor
@@ -44,12 +46,26 @@ public class OrderService {
     private final Clock clock;
 
     private final OutboxWriter outbox;
+    private final MeterRegistry meterRegistry;
 
     public OrderView placeOrder(PlaceOrderCommand command) {
+        String outcome = "failed";
         try {
-            return transactions.execute(status -> create(command));
-        } catch (DataIntegrityViolationException duplicate) {
-            return replayOrReject(command, duplicate);
+            OrderView view;
+            try {
+                view = transactions.execute(status -> create(command));
+                outcome = "success";
+            } catch (DataIntegrityViolationException duplicate) {
+                view = replayOrReject(command, duplicate);
+                outcome = "replayed";
+            }
+            return view;
+        } catch (PaymentDeclinedException declined) {
+            outcome = "declined";
+            throw declined;
+        } finally {
+            meterRegistry.counter("markethub.orders.placed",
+                "method", String.valueOf(command.paymentMethod()), "outcome", outcome).increment();
         }
     }
 
