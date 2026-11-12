@@ -4,6 +4,7 @@ import com.markethub.orders.domain.model.CustomerTier;
 import com.markethub.orders.domain.payment.PaymentMethod;
 import com.markethub.orders.domain.pricing.*;
 import com.markethub.orders.infrastructure.drools.DroolsPricingEngine;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ class PricingRulesTest {
 
     @BeforeAll
     static void buildEngine() {
-        engine = new DroolsPricingEngine(KieServices.Factory.get().getKieClasspathContainer());
+        engine = new DroolsPricingEngine(KieServices.Factory.get().getKieClasspathContainer(), new SimpleMeterRegistry());
     }
 
     @Test
