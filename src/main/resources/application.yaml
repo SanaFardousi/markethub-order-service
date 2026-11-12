@@ -3,6 +3,8 @@ spring:
     name: markethub-order-service
   profiles:
     default: local
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URL:http://localhost:9200}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -35,10 +37,22 @@ management:
     web:
       exposure:
         include: health,info,metrics,prometheus
+    access:
+      default: unrestricted
   endpoint:
     health:
       probes:
         enabled: true
+    prometheus:
+      access: unrestricted
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  simple:
+    metrics:
+      export:
+        enabled: false
   info:
     env:
       enabled: true
