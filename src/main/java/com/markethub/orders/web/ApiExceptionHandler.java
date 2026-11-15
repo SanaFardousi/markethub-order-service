@@ -18,6 +18,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.MDC;
+import com.markethub.orders.domain.exception.PaymentTimeoutException;
 
 @Slf4j
 @RestControllerAdvice
@@ -87,5 +88,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NoCarrierAvailableException.class)
     public ResponseEntity<ApiError> noCarrier(NoCarrierAvailableException ex) {
         return build(HttpStatus.SERVICE_UNAVAILABLE, "NO_CARRIER_AVAILABLE", ex.getMessage(), List.of());
+    }
+
+
+
+    @ExceptionHandler(PaymentTimeoutException.class)
+    public ResponseEntity<ApiError> paymentTimeout(PaymentTimeoutException ex) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "PAYMENT_TIMEOUT", ex.getMessage(), List.of());
     }
 }
