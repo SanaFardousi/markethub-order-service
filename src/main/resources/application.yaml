@@ -30,6 +30,8 @@ markethub:
     poll-interval: PT0.5S
   search:
     url: ${ELASTICSEARCH_URL:http://localhost:9200}
+  carriers:
+    executor: platform
 
 
 management:
@@ -43,6 +45,7 @@ management:
     health:
       probes:
         enabled: true
+
     prometheus:
       access: unrestricted
   prometheus:

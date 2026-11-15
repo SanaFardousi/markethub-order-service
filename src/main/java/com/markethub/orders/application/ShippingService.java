@@ -1,16 +1,19 @@
 package com.markethub.orders.application;
 
-import com.markethub.orders.domain.exception.NoCarrierAvailableException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import com.markethub.orders.domain.exception.NoCarrierAvailableException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -19,26 +22,26 @@ public class ShippingService {
     private static final long TIMEOUT_MILLIS = 800;
 
     private final List<Carrier> carriers;
-    private final ThreadPoolExecutor carrierExecutor;
+    private final Executor carrierExecutor;
 
-    public ShippingService(List<Carrier> carriers, ThreadPoolExecutor carrierExecutor) {
+    public ShippingService(List<Carrier> carriers, @Qualifier("carrierExecutor") Executor carrierExecutor) {
         this.carriers = carriers;
         this.carrierExecutor = carrierExecutor;
     }
 
     public List<ShippingOption> options(String country) {
         List<CompletableFuture<Optional<ShippingOption>>> calls = carriers.stream()
-            .map(carrier -> ask(carrier, country))           // start all calls first...
+            .map(carrier -> ask(carrier, country))
             .toList();
 
         List<ShippingOption> answered = calls.stream()
-            .map(CompletableFuture::join)                    // ...then collect the answers
+            .map(CompletableFuture::join)
             .flatMap(Optional::stream)
             .sorted(Comparator.comparing(ShippingOption::price))
             .toList();
 
         if (answered.isEmpty()) {
-            throw new NoCarrierAvailableException();             // becomes a 503
+            throw new NoCarrierAvailableException();
         }
         return answered;
     }
@@ -59,7 +62,7 @@ public class ShippingService {
     }
 
     private ShippingOption quote(Carrier carrier, String country) {
-        log.info("Asking {} for a quote", carrier.name());       // runs on a carrier-N thread, so the log shows its name
+        log.info("Asking {} for a quote", carrier.name());
         return carrier.quote(country);
     }
 }
