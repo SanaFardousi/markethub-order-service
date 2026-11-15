@@ -15,7 +15,7 @@ A Spring Boot service for a Gulf e-commerce store. It prices baskets with Drools
 
 You need Docker (at least 6 GB of memory) and nothing else.
 
-```bash
+```powershell
 git clone https://github.com/<your-user>/markethub-order-service.git
 cd markethub-order-service
 docker compose up -d --build
@@ -34,41 +34,88 @@ The compose file uses throwaway passwords for local use. For anything else, copy
 ## Try it
 
 **Price a basket**
-```bash
-curl -s -X POST localhost:8080/api/v1/pricing/preview -H 'Content-Type: application/json' \
-  -d '{"customerId":1,"couponCode":"WELCOME10","paymentMethod":"CARD","lines":[{"sku":"MH-OUD-50","quantity":2},{"sku":"MH-ROSE-30","quantity":1}]}'
+```powershell
+$body = '{"customerId":1,"couponCode":"WELCOME10","paymentMethod":"CARD","lines":[{"sku":"MH-OUD-50","quantity":2},{"sku":"MH-ROSE-30","quantity":1}]}'
+Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/v1/pricing/preview -ContentType "application/json" -Body $body
 ```
-Output: *(paste the real output)*
+
+Output:
+```powershell
+currency   : KWD
+subtotal   : 33.000
+discount   : 3.300
+shipping   : 0.000
+total      : 29.700
+promotions : {@{id=R2; description=WELCOME10 coupon; amount=3.300}}
+onHold     : False
+```
 
 **Place an order**
-```bash
-curl -i -X POST localhost:8080/api/v1/orders -H 'Content-Type: application/json' \
-  -H 'Idempotency-Key: 3f6c0e2a-8d4b-4c1e-9a77-1b2c3d4e5f60' \
-  -d '{"customerId":1,"couponCode":"WELCOME10","paymentMethod":"CARD","card":{"number":"4111111111111111","expiry":"12/28"},"shippingAddress":{"country":"KW","city":"Kuwait City","line1":"Block 3, Street 12"},"lines":[{"sku":"MH-OUD-50","quantity":2},{"sku":"MH-ROSE-30","quantity":1}]}'
+```powershell
+$body = '{"customerId":1,"couponCode":"WELCOME10","paymentMethod":"CARD","card":{"number":"4111111111111111","expiry":"12/28"},"shippingAddress":{"country":"KW","city":"Kuwait City","line1":"Block 3, Street 12"},"lines":[{"sku":"MH-OUD-50","quantity":2},{"sku":"MH-ROSE-30","quantity":1}]}'
+Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/v1/orders -ContentType "application/json" -Headers @{"Idempotency-Key"="3f6c0e2a-8d4b-4c1e-9a77-1b2c3d4e5f60"} -Body $body
 ```
-Output: *(paste the real output)*
 
-**Ship it** (use the order number from the previous output)
-```bash
-curl -s -X POST localhost:8080/api/v1/orders/MH-2026-000001/transitions -H 'Content-Type: application/json' -d '{"action":"SHIP"}'
+Output:
+```powershell
+orderNumber : MH-2026-000001
+status      : CONFIRMED
+currency    : KWD
+subtotal    : 33.000
+discount    : 3.300
+shipping    : 0.000
+total       : 29.700
+promotions  : {@{id=R2; description=WELCOME10 coupon; amount=3.300}}
+lines       : {@{sku=MH-OUD-50; name=Royal Oud 50ml; quantity=2; unitPrice=12.500}, @{sku=MH-ROSE-30; name=Damask Rose 30ml; quantity=1; unitPrice=8.000}}
+payment     : @{method=CARD; status=AUTHORISED; cardLast4=1111}
 ```
-Output: *(paste)*
+
+**Ship it** (replace MH-2026-000001 with the orderNumber from the previous output)
+```powershell
+Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/v1/orders/MH-2026-000001/transitions -ContentType "application/json" -Body '{"action":"SHIP"}'
+```
+
+Output:
+```powershell
+orderNumber : MH-2026-000001
+status      : SHIPPED
+currency    : KWD
+subtotal    : 33.000
+discount    : 3.300
+shipping    : 0.000
+total       : 29.700
+promotions  : {@{id=R2; description=WELCOME10 coupon; amount=3.3}}
+lines       : {@{sku=MH-OUD-50; name=Royal Oud 50ml; quantity=2; unitPrice=12.500}, @{sku=MH-ROSE-30; name=Damask Rose 30ml; quantity=1; unitPrice=8.000}}
+payment     : @{method=CARD; status=AUTHORISED; cardLast4=1111}
+```
 
 **Search for a product, change its price, and search again**
-```bash
-curl -s 'localhost:8080/api/v1/search/products?q=oud&size=1'
-curl -s -X PUT localhost:8080/api/v1/admin/products/MH-OUD-50 -H 'Content-Type: application/json' \
-  -d '{"nameEn":"Royal Oud 50ml","nameAr":"عود ملكي 50 مل","brand":"MAISON","category":"fragrance","price":9.900,"status":"ACTIVE"}'
-sleep 3
-curl -s 'localhost:8080/api/v1/search/products?q=oud&size=1'
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/search/products?q=oud&size=1"
+$body = '{"nameEn":"Royal Oud 50ml","nameAr":"\u0639\u0648\u062f \u0645\u0644\u0643\u064a 50 \u0645\u0644","brand":"MAISON","category":"fragrance","price":9.900,"status":"ACTIVE"}'
+Invoke-RestMethod -Method Put -Uri http://localhost:8080/api/v1/admin/products/MH-OUD-50 -ContentType "application/json" -Body $body
+Start-Sleep -Seconds 3
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/search/products?q=oud&size=1"
 ```
-Output: *(paste all three)*
+
+Output:
+```powershell
+
+```
 
 **Shipping options**
-```bash
-curl -s 'localhost:8080/api/v1/shipping/options?country=KW'
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/shipping/options?country=KW"
 ```
-Output: *(paste)*
+
+Output:
+```powershell
+carrier       price currency estimatedDays
+-------       ----- -------- -------------
+GulfPost      1.500 KWD                  4
+DesertExpress 2.500 KWD                  2
+FastCourier   3.500 KWD                  1
+```
 
 ## Pricing rules
 
