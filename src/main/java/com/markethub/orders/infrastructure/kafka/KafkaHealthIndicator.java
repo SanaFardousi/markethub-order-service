@@ -10,7 +10,7 @@ import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("kafka")
 public class KafkaHealthIndicator implements HealthIndicator {
 
     private final String bootstrapServers;
