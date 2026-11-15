@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import java.util.concurrent.ExecutorService;
 
 class ExecutorConfigTest {
 
@@ -50,5 +51,21 @@ class ExecutorConfigTest {
             () -> assertThat(executor.isTerminated()).isTrue(),
             () -> assertThatThrownBy(() -> executor.submit(() -> "late"))
                 .isInstanceOf(RejectedExecutionException.class));
+    }
+
+    @Test
+    void virtualCarrierExecutor_shouldRunTasksOnNamedVirtualThreads() throws Exception {
+        ExecutorService executor = config.virtualCarrierExecutor();
+        try {
+            record Seen(boolean virtual, String name) {}
+            Seen seen = executor.submit(() -> new Seen(Thread.currentThread().isVirtual(), Thread.currentThread().getName()))
+                .get(5, TimeUnit.SECONDS);
+
+            assertAll(
+                () -> assertThat(seen.virtual()).isTrue(),
+                () -> assertThat(seen.name()).startsWith("carrier-vt-"));
+        } finally {
+            executor.shutdownNow();
+        }
     }
 }

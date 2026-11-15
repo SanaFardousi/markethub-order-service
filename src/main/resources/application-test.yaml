@@ -8,6 +8,7 @@ management:
   endpoint:
     health:
       show-components: always
+      show-details: always
 
 markethub:
   payment:
