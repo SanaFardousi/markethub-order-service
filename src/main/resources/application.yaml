@@ -45,6 +45,7 @@ management:
     health:
       probes:
         enabled: true
+
     prometheus:
       access: unrestricted
   prometheus:
