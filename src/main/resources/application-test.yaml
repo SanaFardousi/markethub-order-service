@@ -3,7 +3,13 @@ spring:
     properties:
       hibernate:
         generate_statistics: true
+
 management:
   endpoint:
     health:
       show-components: always
+
+markethub:
+  payment:
+    retry:
+      backoff: 1ms

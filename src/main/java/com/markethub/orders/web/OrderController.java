@@ -65,6 +65,8 @@ public class OrderController {
         @ApiResponse(responseCode = "409", description = "Unknown or inactive SKU, or the Idempotency-Key was reused with a different body",
             content = @Content(schema = @Schema(implementation = ApiError.class))),
         @ApiResponse(responseCode = "422", description = "Payment declined, no order was created",
+            content = @Content(schema = @Schema(implementation = ApiError.class))),
+        @ApiResponse(responseCode = "503", description = "The payment provider did not answer in time; no order was created. Retrying with the same Idempotency-Key is safe",
             content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @PostMapping("/orders")
