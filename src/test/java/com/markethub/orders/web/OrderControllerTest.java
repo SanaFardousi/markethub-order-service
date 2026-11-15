@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.markethub.orders.domain.exception.PaymentTimeoutException;
 
 @WebMvcTest(OrderController.class)
 @Import({ApiMapperImpl.class, FixedClockConfig.class, ApiExceptionHandler.class})
@@ -168,8 +168,8 @@ class OrderControllerTest {
             Arguments.of(new PaymentDeclinedException("declined"), 422, "PAYMENT_DECLINED"),
             Arguments.of(new BadRequestException("bad"), 400, "VALIDATION_FAILED"),
             Arguments.of(new IllegalStateException("boom"), 500, "INTERNAL_ERROR"),
-            Arguments.of(new NoCarrierAvailableException(), 503, "NO_CARRIER_AVAILABLE"));
-
+            Arguments.of(new NoCarrierAvailableException(), 503, "NO_CARRIER_AVAILABLE"),
+            Arguments.of(new PaymentTimeoutException("slow"), 503, "PAYMENT_TIMEOUT"));
     }
 
     @ParameterizedTest(name = "{0} gives {1} {2}")

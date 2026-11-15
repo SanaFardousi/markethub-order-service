@@ -189,4 +189,19 @@ class OrderFlowTest extends AbstractIntegrationTest {
             () -> assertThat(jdbc.queryForObject("select status from orders", String.class)).isEqualTo("CONFIRMED"),
             () -> assertThat(jdbc.queryForObject("select status from payment", String.class)).isEqualTo("PENDING"));
     }
+
+    @Test
+    @DisplayName("a payment provider timeout returns 503 and leaves no order, payment or event behind")
+    void placeOrder_shouldReturn503AndLeaveNothingBehind_whenThePaymentProviderTimesOut() throws Exception {
+        long customer = customerId("customer01@example.com");
+
+        place(newKey(), orderJson(customer, null, "CARD", "4111111111110003", LINES))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.code").value("PAYMENT_TIMEOUT"));
+
+        assertAll(
+            () -> assertThat(countOf("orders")).isZero(),
+            () -> assertThat(countOf("payment")).isZero(),
+            () -> assertThat(countOf("outbox_event")).isZero());
+    }
 }
