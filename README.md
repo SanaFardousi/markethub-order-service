@@ -2,6 +2,13 @@
 
 [![CI](https://github.com/SanaFardousi/markethub-order-service/actions/workflows/ci.yml/badge.svg)](https://github.com/SanaFarodusi/markethub-order-service/actions/workflows/ci.yml)
 
+![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-green?style=flat-square&logo=springboot&logoColor=white)
+![Kafka](https://img.shields.io/badge/Kafka-3.9.2-black?style=flat-square&logo=apachekafka&logoColor=white)
+![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.19.23-yellow?style=flat-square&logo=elasticsearch&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.4-blue?style=flat-square&logo=mysql&logoColor=white)
+![Drools](https://img.shields.io/badge/Drools-10.2.0-red?style=flat-square&logo=redhat&logoColor=white)
+
 A Spring Boot service for a Gulf e-commerce store. It prices baskets with Drools rules, takes orders and moves them through a lifecycle built on design patterns, publishes every order and product change to Kafka through a transactional outbox, serves product search from Elasticsearch, and stays correct under concurrent requests. Money is in Kuwaiti dinars with three decimals.
 
 ## Quick start
@@ -80,7 +87,7 @@ The rules live in `src/main/resources/rules/pricing/` as Drools DRL files. Java 
 The payment kinds differ by only two or three columns, so one table wastes almost nothing.
 Loading an order’s payment is a single table read with no join, whereas JOINED would add a join to every payment read.
 
-**Design patterns:**
+### Design patterns:
 **State.** What can be done with an order depends on its status. A confirmed order can be shipped, but a delivered order cannot be changed at all. Each status is therefore its own small class (`OnHold`, `Confirmed`, `Shipped`, `Delivered` and `Cancelled`), and each class overrides only the moves it allows. Any other move throws `IllegalTransitionException`, which the API returns as a 409. Without this pattern, every action such as `ship` or `cancel` would need its own `switch` on the status. Adding a new status would mean editing all of them, and one could easily be missed.
 
 **Strategy and Factory.** Each payment method behaves differently. A card is authorised through the payment gateway, cash on delivery is only recorded as pending, and a wallet is charged directly. Each method has its own `PaymentStrategy`, and `PaymentStrategyFactory` collects them all and returns the right one for a given method. The order code never asks which method is being used. It receives a strategy and calls it. Without these patterns, the order code would need an `if` or `switch` on the payment method in several places, such as when paying and when refunding. A fourth method would then mean changing all of them. With the patterns, it means adding one new class.
@@ -91,7 +98,7 @@ Loading an order’s payment is a single table read with no join, whereas JOINED
 
 **Where a pattern was deliberately not used.** There is only one payment gateway implementation, so no factory or strategy was added for choosing between gateways. For a single option, that would be over-engineering. If a second provider is ever added, that is the time to introduce one.
 
-**Events and delivery guarantees:**
+### Events and delivery guarantees:
 **Why an outbox.** MySQL and Kafka can't be committed together. Writing to Kafka inside the transaction risks announcing a rolled-back order; writing after risks losing the event on a crash. Instead, each change writes an outbox_event row in the same transaction. OutboxRelay publishes those rows separately.
 
 **Delivery is at-least-once.** The relay marks a row published only after Kafka acknowledges it. If the app stops in between, the row is sent again on the next run. No event is lost, but duplicates are possible, so consumers must tolerate them.
@@ -102,14 +109,30 @@ Loading an order’s payment is a single table read with no join, whereas JOINED
 
 **Ordering.** Kafka only keeps order within a partition, and the message key picks the partition. Order events use the order number; product events use the SKU. The relay sends one event at a time, oldest first, stopping at the first failure so a later event can never overtake an earlier one.
 
-**Search:**
+### Events and concurrency decisions:
+
+**1. Delivery.** The outbox gives at-least-once delivery. The relay marks a row as published only after Kafka has acknowledged it, so a crash between the send and that update makes the relay send the event again on the next run. Duplicates will happen, and consumers must not care: they have to produce the same result when they see the same event twice.
+
+**2. Ordering.** Kafka keeps order only within a partition, and the message key chooses the partition. Order events are keyed by order number and product events by SKU, so all events of one order or product arrive in the order they were written. No consumer may depend on global order across different keys, and none does.
+
+**3. Freshness.** Search lags behind MySQL by a second or two, because a change travels through the outbox, Kafka and the Elasticsearch refresh interval before it is visible. Tests wait for it with Awaitility instead of sleeping.
+
+**4. Failure (new).** A failing product event is retried three times with a growing pause (0.5 s, 1 s, 2 s) and then moved to the dead-letter topic `markethub.products.v1.DLT`. A message that cannot even be parsed skips the retries and goes to the dead-letter topic immediately. One bad message therefore never blocks a partition, because the consumer moves on to the next message after quarantining it.
+
+**5. Rebuild.** Search is a copy of the data in MySQL, never the source. If the Elasticsearch data is deleted, the application recreates the index on the next start and reloads every product from MySQL with the bulk API.
+
+**6. Thread safety.** See the table in the concurrency section. In short: `KieContainer`, the Elasticsearch client and `KafkaTemplate` are shared because they are built for concurrent use. `KieSession` and managed JPA entities are never shared, because they belong to one request or transaction.
+
+**When Kafka is the wrong answer (new).** Kafka is for work that can happen later and that nobody is waiting for. It is the wrong tool when the caller needs the result now to continue, which is why pricing is a synchronous call and not an event. It is also the wrong tool when correctness depends on the result, such as taking a payment: an order must not be confirmed before the payment succeeds, so payment is a direct call inside the order transaction. Events are used for announcing what already happened (an order was placed, a product changed), where a delay of a second or two does no harm.
+
+### Search:
 **Why price is not a float.** Floating point numbers cannot represent most decimals exactly, so a price such as 9.900 could be stored slightly off and give wrong results at the edges of a price filter. Prices are indexed as `scaled_float` with a factor of 1000: Elasticsearch stores the price times 1000 as a whole number, which is exact for KWD's three decimals.
 
 **Freshness.** Search lags behind MySQL by a second or two. A product change travels from MySQL through the outbox and Kafka to Elasticsearch, and becomes visible after the next index refresh. Tests wait for this with Awaitility instead of sleeping.
 
 **Search is a copy, never the source.** If the Elasticsearch data is deleted, the application recreates the index and reloads every product from MySQL on the next start.
 
-**Concurrency:**
+### Concurrency:
 **Why blocking calls must not run on the common ForkJoinPool.** `CompletableFuture.supplyAsync` without an executor runs on `ForkJoinPool.commonPool()`. That pool is shared by the whole JVM, including parallel streams, and it is sized to roughly the number of CPU cores minus one. It is meant for short CPU-bound work. A carrier call spends its time waiting on the network, and a waiting thread still occupies its slot, so a few slow carriers can use up the whole pool and stall unrelated work. Shipping quotes therefore run on a dedicated, bounded `ThreadPoolExecutor` with named threads (`carrier-1`, `carrier-2`, ...). A slow carrier can only exhaust that pool, the bounded queue limits the backlog, and log lines show which thread did the work.
 
 ## Testing
