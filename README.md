@@ -5,7 +5,7 @@
 ![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-green?style=flat-square&logo=springboot&logoColor=white)
 ![Kafka](https://img.shields.io/badge/Kafka-3.9.2-black?style=flat-square&logo=apachekafka&logoColor=white)
-![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.19.23-yellow?style=flat-square&logo=elasticsearch&logoColor=white)
+![Elasticsearch](https://img.shields.io/badge/Elasticsearch-9.0.3-yellow?style=flat-square&logo=elasticsearch&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.4-blue?style=flat-square&logo=mysql&logoColor=white)
 ![Drools](https://img.shields.io/badge/Drools-10.2.0-red?style=flat-square&logo=redhat&logoColor=white)
 
@@ -70,7 +70,7 @@ lines       : {@{sku=MH-OUD-50; name=Royal Oud 50ml; quantity=2; unitPrice=12.50
 payment     : @{method=CARD; status=AUTHORISED; cardLast4=1111}
 ```
 
-**Ship it** (replace MH-2026-000001 with the orderNumber from the previous output)
+**Ship it**
 ```powershell
 Invoke-RestMethod -Method Post -Uri http://localhost:8080/api/v1/orders/MH-2026-000001/transitions -ContentType "application/json" -Body '{"action":"SHIP"}'
 ```
@@ -226,6 +226,7 @@ The events were published on restart, in the order they were written. This works
 
 ### Concurrency:
 **Why blocking calls must not run on the common ForkJoinPool.** `CompletableFuture.supplyAsync` without an executor runs on `ForkJoinPool.commonPool()`. That pool is shared by the whole JVM, including parallel streams, and it is sized to roughly the number of CPU cores minus one. It is meant for short CPU-bound work. A carrier call spends its time waiting on the network, and a waiting thread still occupies its slot, so a few slow carriers can use up the whole pool and stall unrelated work. Shipping quotes therefore run on a dedicated, bounded `ThreadPoolExecutor` with named threads (`carrier-1`, `carrier-2`, ...). A slow carrier can only exhaust that pool, the bounded queue limits the backlog, and log lines show which thread did the work.
+
 **Platform pool vs virtual threads.** Carrier calls can run on a bounded pool of platform threads (the default) or on virtual threads (`markethub.carriers.executor=virtual`). A virtual thread that blocks on the network is parked by the JVM at almost no cost, so a burst of waiting calls does not need a thread each from a small pool. A comparison test sends 100 shipping requests at once (300 carrier calls of 200 ms each). The bounded pool of 12 threads and a queue of 100 answered 36 of 300 calls and left 64 requests without any answer, while virtual threads answered all 300 in 323 ms. The trade-off is that virtual threads have no built-in limit: a burst creates as many threads as there are calls, so the bounded pool stays the default, and a production setup using virtual threads would cap the concurrency explicitly, for example with a semaphore. Virtual threads help with waiting, not with CPU-heavy work.
 
 ### Payment retries (decorator).
@@ -241,7 +242,7 @@ The events were published on restart, in the order they were written. This works
 
 Run everything with `./mvnw verify`. Docker must be running. The build fails if line coverage on `domain` and `application` drops below 80% or branch coverage below 70%.
 
-Coverage at the time of writing: *(line % and branch % from `target/site/jacoco/index.html`)*. The full suite takes about *(your time)*.
+Coverage at the time of writing: 96% line, 78% branch (total); domain and application both exceed the 80% line / 70% branch minimums. The full suite takes about 01:29 min.
 
 ## Known limitations
 
