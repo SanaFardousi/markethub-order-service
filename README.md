@@ -92,8 +92,8 @@ payment     : @{method=CARD; status=AUTHORISED; cardLast4=1111}
 **Search for a product, change its price, and search again**
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8080/api/v1/search/products?q=oud&size=1"
-$body = '{"nameEn":"Royal Oud 50ml","nameAr":"\u0639\u0648\u062f \u0645\u0644\u0643\u064a 50 \u0645\u0644","brand":"MAISON","category":"fragrance","price":9.900,"status":"ACTIVE"}'
-Invoke-RestMethod -Method Put -Uri http://localhost:8080/api/v1/admin/products/MH-OUD-50 -ContentType "application/json" -Body $body
+$body = '{"nameEn":"Royal Oud 100ml","nameAr":"\u0639\u0648\u062f \u0645\u0644\u0643\u064a 100 \u0645\u0644","brand":"MAISON","category":"fragrance","price":9.900,"status":"ACTIVE"}'
+Invoke-RestMethod -Method Put -Uri http://localhost:8080/api/v1/admin/products/MH-OUD-100 -ContentType "application/json" -Body $body
 Start-Sleep -Seconds 3
 Invoke-RestMethod -Uri "http://localhost:8080/api/v1/search/products?q=oud&size=1"
 ```
@@ -108,9 +108,9 @@ totalPages    : 6
 facets        : @{brand=System.Object[]; category=System.Object[]}
 ```
 ```powershell
-sku      : MH-OUD-50
-nameEn   : Royal Oud 50ml
-nameAr   : Ø¹Ù Ø¯ Ù Ù Ù Ù  50 Ù Ù
+sku      : MH-OUD-100
+nameEn   : Royal Oud 100ml
+nameAr   : Ø¹Ù Ø¯ Ù Ù Ù Ù  100 Ù Ù
 brand    : MAISON
 category : fragrance
 price    : 9.900
@@ -119,7 +119,7 @@ status   : ACTIVE
 version  : 1
 ```
 ```powershell
-content       : {@{sku=MH-OUD-100; name=Royal Oud 100ml; brand=MAISON; price=21.500}}
+content       : {@{sku=MH-OUD-100; name=Royal Oud 100ml; brand=MAISON; price=9.900}}
 page          : 0
 size          : 1
 totalElements : 6
