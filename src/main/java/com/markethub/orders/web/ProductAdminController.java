@@ -4,16 +4,15 @@ import com.markethub.orders.application.ProductService;
 import com.markethub.orders.web.dto.ProductResponse;
 import com.markethub.orders.web.dto.ProductUpsertRequest;
 import com.markethub.orders.web.mapper.ApiMapper;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Products (admin)", description = "Create or update a product and publish ProductUpserted")
 @ApiResponses({

@@ -1,19 +1,19 @@
 package com.markethub.orders.it;
 
 import com.markethub.orders.infrastructure.kafka.Topics;
+import com.markethub.orders.it.KafkaTestSupport.Collector;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import com.markethub.orders.it.KafkaTestSupport.Collector;
 import org.springframework.kafka.support.KafkaHeaders;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import java.util.UUID;
 
 @ExtendWith(OutputCaptureExtension.class)
 class BrokenMessageTest extends AbstractIntegrationTest {

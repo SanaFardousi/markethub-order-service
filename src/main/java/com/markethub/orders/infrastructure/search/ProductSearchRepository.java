@@ -1,12 +1,5 @@
 package com.markethub.orders.infrastructure.search;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
-
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOptions;
@@ -15,11 +8,17 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.json.JsonData;
 import com.markethub.orders.domain.model.ProductSearchQuery;
 import com.markethub.orders.domain.model.ProductSearchResult;
 import com.markethub.orders.domain.model.SearchSort;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -65,11 +64,11 @@ public class ProductSearchRepository {
             bool.filter(f -> f.terms(t -> t.field("category").terms(v -> v.value(values(q.categories())))));
         }
         if (q.minPrice() != null || q.maxPrice() != null) {
-            bool.filter(f -> f.range(r -> r.number(n -> {
-                n.field("price");
-                if (q.minPrice() != null) n.gte(q.minPrice().doubleValue());
-                if (q.maxPrice() != null) n.lte(q.maxPrice().doubleValue());
-                return n;
+            bool.filter(f -> f.range(r -> r.untyped(u -> {
+                u.field("price");
+                if (q.minPrice() != null) u.gte(JsonData.of(q.minPrice()));
+                if (q.maxPrice() != null) u.lte(JsonData.of(q.maxPrice()));
+                return u;
             })));
         }
         return bool.build()._toQuery();

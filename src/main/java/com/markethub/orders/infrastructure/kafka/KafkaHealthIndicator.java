@@ -1,14 +1,14 @@
 package com.markethub.orders.infrastructure.kafka;
 
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Component("kafka")
 public class KafkaHealthIndicator implements HealthIndicator {

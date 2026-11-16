@@ -15,10 +15,9 @@ import com.markethub.orders.infrastructure.drools.DroolsPricingEngine;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
 import com.markethub.orders.infrastructure.persistence.ProductRepository;
-
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;

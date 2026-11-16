@@ -1,10 +1,10 @@
 package com.markethub.orders.unit;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.markethub.orders.application.CardDetails;
+import com.markethub.orders.application.GatewayResult;
+import com.markethub.orders.application.PaymentGateway;
+import com.markethub.orders.application.RetryingPaymentGateway;
+import com.markethub.orders.domain.exception.PaymentTimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,19 +12,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.markethub.orders.application.CardDetails;
-import com.markethub.orders.application.GatewayResult;
-import com.markethub.orders.application.PaymentGateway;
-import com.markethub.orders.application.RetryingPaymentGateway;
-import com.markethub.orders.domain.exception.PaymentTimeoutException;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RetryingPaymentGatewayTest {

@@ -1,6 +1,12 @@
 package com.markethub.orders.unit;
-import java.util.List;
 
+import com.markethub.orders.application.SearchService;
+import com.markethub.orders.application.SearchView;
+import com.markethub.orders.domain.exception.BadRequestException;
+import com.markethub.orders.domain.model.ProductSearchQuery;
+import com.markethub.orders.domain.model.ProductSearchResult;
+import com.markethub.orders.domain.model.SearchSort;
+import com.markethub.orders.infrastructure.search.ProductSearchRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,21 +17,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.markethub.orders.application.SearchService;
-import com.markethub.orders.application.SearchView;
-import com.markethub.orders.domain.exception.BadRequestException;
-import com.markethub.orders.domain.model.ProductSearchQuery;
-import com.markethub.orders.domain.model.ProductSearchResult;
-import com.markethub.orders.domain.model.SearchSort;
-import com.markethub.orders.infrastructure.search.ProductSearchRepository;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)

@@ -1,8 +1,8 @@
 package com.markethub.orders.web;
 
-import java.math.BigDecimal;
-import java.util.List;
-
+import com.markethub.orders.application.SearchService;
+import com.markethub.orders.application.SearchView;
+import com.markethub.orders.domain.model.ProductSearchResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -10,9 +10,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.markethub.orders.application.SearchService;
-import com.markethub.orders.application.SearchView;
-import com.markethub.orders.domain.model.ProductSearchResult;
+import java.math.BigDecimal;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

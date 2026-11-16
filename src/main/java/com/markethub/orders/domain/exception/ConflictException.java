@@ -1,7 +1,5 @@
 package com.markethub.orders.domain.exception;
 
-import com.markethub.orders.domain.model.OrderStatus;
-
 public class ConflictException extends RuntimeException {
     private final String code;
     public ConflictException(String code, String message) { super(message); this.code = code; }

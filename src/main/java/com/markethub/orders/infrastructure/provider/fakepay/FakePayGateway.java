@@ -1,15 +1,14 @@
 package com.markethub.orders.infrastructure.provider.fakepay;
 
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.UUID;
-
-import org.springframework.stereotype.Component;
-
 import com.markethub.orders.application.CardDetails;
 import com.markethub.orders.application.GatewayResult;
 import com.markethub.orders.application.PaymentGateway;
 import com.markethub.orders.domain.exception.PaymentTimeoutException;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class FakePayGateway implements PaymentGateway {

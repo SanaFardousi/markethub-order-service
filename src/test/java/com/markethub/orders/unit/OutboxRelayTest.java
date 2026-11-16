@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import static com.markethub.orders.OrderFixtures.NOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

@@ -28,13 +28,11 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import static com.markethub.orders.OrderFixtures.NOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.*;
-import static com.markethub.orders.OrderFixtures.NOW;
 
 @ExtendWith(MockitoExtension.class)
 class PricingServiceTest {

@@ -1,19 +1,14 @@
 package com.markethub.orders.it;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -114,5 +109,28 @@ class ConcurrencyTest extends AbstractIntegrationTest {
     private int statusOf(MockHttpServletRequestBuilder request, String json) throws Exception {
         return mvc.perform(request.contentType(MediaType.APPLICATION_JSON).content(json))
             .andReturn().getResponse().getStatus();
+    }
+
+    @Test
+    @DisplayName("50 simultaneous price previews each return their own correct result")
+    void preview_shouldReturnCorrectResults_when50RequestsArriveAtOnce() throws Exception {
+        long customer = customerId("customer01@example.com");      // no orders, so WELCOME10 applies
+        List<Callable<String>> requests = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            String coupon = i % 2 == 0 ? "\"WELCOME10\"" : "null";
+            String body = """
+                {"customerId": %d, "couponCode": %s, "paymentMethod": "CARD",
+                 "lines": [{"sku": "MH-OUD-50", "quantity": 2}, {"sku": "MH-ROSE-30", "quantity": 1}]}"""
+                .formatted(customer, coupon);
+            requests.add(() -> JsonPath.<String>read(mvc.perform(post("/api/v1/pricing/preview")
+                    .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$.total"));
+        }
+
+        List<String> totals = runTogether(requests);
+
+        for (int i = 0; i < 50; i++) {
+            assertThat(totals.get(i)).as("request %d", i).isEqualTo(i % 2 == 0 ? "29.700" : "31.350");
+        }
     }
 }

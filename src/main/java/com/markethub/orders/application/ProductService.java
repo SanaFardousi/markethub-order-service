@@ -3,14 +3,9 @@ package com.markethub.orders.application;
 import com.markethub.orders.domain.model.Product;
 import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.ProductRepository;
-import com.markethub.orders.web.dto.ProductResponse;
-import com.markethub.orders.web.dto.ProductUpsertRequest;
-import com.markethub.orders.web.mapper.ApiMapper;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 
 import java.time.Clock;
 import java.time.Instant;

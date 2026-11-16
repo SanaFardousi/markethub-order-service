@@ -1,9 +1,10 @@
 package com.markethub.orders.web;
-import java.util.List;
 
 import com.markethub.orders.application.SearchView;
 import com.markethub.orders.domain.model.Money;
 import com.markethub.orders.domain.model.ProductSearchResult;
+
+import java.util.List;
 
 public record SearchResponse(List<Hit> content, int page, int size, long totalElements, int totalPages, Facets facets) {
     public record Hit(String sku, String name, String brand, String price) {}

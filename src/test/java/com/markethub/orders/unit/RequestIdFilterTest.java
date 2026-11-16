@@ -1,15 +1,13 @@
 package com.markethub.orders.unit;
 
-import java.util.concurrent.atomic.AtomicReference;
-
+import com.markethub.orders.web.RequestIdFilter;
+import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import com.markethub.orders.web.RequestIdFilter;
-
-import jakarta.servlet.FilterChain;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
