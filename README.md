@@ -1,6 +1,6 @@
 # MarketHub Order & Search Service
 
-[![CI](https://github.com/SanaFardousi/markethub-order-service/actions/workflows/ci.yml/badge.svg)](https://github.com/SanaFarodusi/markethub-order-service/actions/workflows/ci.yml)
+[![CI](https://github.com/SanaFardousi/markethub-order-service/actions/workflows/ci.yml/badge.svg)](https://github.com/SanaFardousi/markethub-order-service/actions/workflows/ci.yml)
 
 ![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-green?style=flat-square&logo=springboot&logoColor=white)
@@ -20,7 +20,7 @@ git clone https://github.com/SanaFardousi/markethub-order-service.git
 cd markethub-order-service
 docker compose up -d --build
 ```
-The first start builds the image and takes a few minutes. When `docker compose ps` shows the `app` service as `healthy`:
+The first start builds the image and takes a few minutes. On a company network, see [Building behind a corporate network](#building-behind-a-corporate-network) first. When `docker compose ps` shows the `app` service as `healthy`:
 
 | What | URL |
 |---|---|
@@ -30,6 +30,25 @@ The first start builds the image and takes a few minutes. When `docker compose p
 | Kafka UI | http://localhost:8090 |
 
 The compose file uses throwaway passwords for local use. For anything else, copy `.env.example` to `.env` and set real values.
+
+### Building behind a corporate network
+
+Some company networks inspect HTTPS traffic and re-sign it with their own root certificate. Maven inside the Docker build then fails to download dependencies with an error such as `PKIX path building failed` or `unable to find valid certification path`.
+
+**On a normal network you do not need to do anything.** The build uses the standard trusted certificates.
+
+**On a company network**, export your network's root certificate (ask your IT team, or export it from your browser) and save it in the project root as `company-root-ca.cer`:
+
+```
+markethub-order-service/
+├── company-root-ca.cer   <- your company's root certificate
+├── Dockerfile
+└── ...
+```
+
+Then build as usual with `docker compose up -d --build`. The Dockerfile adds the certificate to the build's trusted certificates when the file is there, and skips this step when it is not, so the same Dockerfile works on both kinds of network. The file name is in `.gitignore`, so it is never committed.
+
+The CI pipeline creates this file from the `NETWORK_CERTIFICATE` repository secret. If that secret is not set (for example in a fork), the file is empty and the step is skipped.
 
 ## Try it
 
@@ -148,7 +167,7 @@ The rules live in `src/main/resources/rules/pricing/` as Drools DRL files. Java 
 | Id | Rule | Detail |
 |---|---|---|
 | R1 | Basket tier | Subtotal of 20.000 KWD or more gets 5%, and 50.000 or more gets 10%. Only the highest tier applies. |
-| R2 | Welcome coupon | `WELCOME10` gives 10% off, capped at 5.000 KWD, only for a customer with no earlier orders. |
+| R2 | Welcome coupon | `WELCOME10` gives 10% off, capped at 5.000 KWD, only for a customer with no earlier orders. Cancelled orders do not count. |
 | R3 | No stacking | R1 and R2 never stack. The customer gets the larger. |
 | R4 | Shipping | Free for GOLD customers, or when subtotal minus discount is 15.000 or more. Otherwise 1.500. |
 | F1 | Fraud hold | Cash on delivery with a total above 100.000 puts the order on hold for manual approval. |
@@ -226,6 +245,8 @@ The events were published on restart, in the order they were written. This works
 
 ### Concurrency:
 **Why blocking calls must not run on the common ForkJoinPool.** `CompletableFuture.supplyAsync` without an executor runs on `ForkJoinPool.commonPool()`. That pool is shared by the whole JVM, including parallel streams, and it is sized to roughly the number of CPU cores minus one. It is meant for short CPU-bound work. A carrier call spends its time waiting on the network, and a waiting thread still occupies its slot, so a few slow carriers can use up the whole pool and stall unrelated work. Shipping quotes therefore run on a dedicated, bounded `ThreadPoolExecutor` with named threads (`carrier-1`, `carrier-2`, ...). A slow carrier can only exhaust that pool, the bounded queue limits the backlog, and log lines show which thread did the work.
+
+**Late carriers are cancelled.** All carriers share one 800 ms deadline. A carrier that has not answered by then is cancelled with an interrupt, so its thread stops waiting on the slow call and goes back to the pool at once, instead of staying busy until the carrier finally answers.
 
 **Platform pool vs virtual threads.** Carrier calls can run on a bounded pool of platform threads (the default) or on virtual threads (`markethub.carriers.executor=virtual`). A virtual thread that blocks on the network is parked by the JVM at almost no cost, so a burst of waiting calls does not need a thread each from a small pool. A comparison test sends 100 shipping requests at once (300 carrier calls of 200 ms each). The bounded pool of 12 threads and a queue of 100 answered 36 of 300 calls and left 64 requests without any answer, while virtual threads answered all 300 in 323 ms. The trade-off is that virtual threads have no built-in limit: a burst creates as many threads as there are calls, so the bounded pool stays the default, and a production setup using virtual threads would cap the concurrency explicitly, for example with a semaphore. Virtual threads help with waiting, not with CPU-heavy work.
 

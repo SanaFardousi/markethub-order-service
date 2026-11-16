@@ -7,6 +7,7 @@ import com.markethub.orders.domain.exception.ConflictException;
 import com.markethub.orders.domain.exception.NotFoundException;
 import com.markethub.orders.domain.model.Customer;
 import com.markethub.orders.domain.model.CustomerTier;
+import com.markethub.orders.domain.model.OrderStatus;
 import com.markethub.orders.domain.model.Product;
 import com.markethub.orders.domain.model.ProductStatus;
 import com.markethub.orders.domain.payment.PaymentMethod;
@@ -57,7 +58,7 @@ class PricingServiceTest {
         when(customers.findById(1L)).thenReturn(Optional.of(gold));
         when(products.findBySkuIn(anyCollection()))
             .thenReturn(List.of(product("MH-OUD-50", "Royal Oud 50ml", "12.500", ProductStatus.ACTIVE)));
-        when(orders.countByCustomerId(1L)).thenReturn(3L);
+        when(orders.countByCustomerIdAndStatusNot(1L, OrderStatus.CANCELLED)).thenReturn(3L);
         when(engine.price(any(Basket.class), any(CustomerFact.class))).thenReturn(RESULT);
 
         PricedBasket priced = service.priceBasket(1L, "WELCOME10", PaymentMethod.CARD,
@@ -80,7 +81,7 @@ class PricingServiceTest {
         when(customers.findById(1L)).thenReturn(Optional.of(gold));
         when(products.findBySkuIn(anyCollection()))
             .thenReturn(List.of(product("MH-OUD-50", "Royal Oud 50ml", "12.500", ProductStatus.ACTIVE)));
-        when(orders.countByCustomerId(1L)).thenReturn(0L);
+        when(orders.countByCustomerIdAndStatusNot(1L, OrderStatus.CANCELLED)).thenReturn(0L);
         when(engine.price(any(Basket.class), any(CustomerFact.class))).thenReturn(RESULT);
 
         PricingResult result = service.price(1L, null, PaymentMethod.CARD, List.of(new RequestedLine("MH-OUD-50", 2)));

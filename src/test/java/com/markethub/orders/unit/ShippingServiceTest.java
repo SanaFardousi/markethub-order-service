@@ -105,6 +105,33 @@ class ShippingServiceTest {
     }
 
     @Test
+    @DisplayName("a carrier that misses the deadline is interrupted, so its thread goes back to the pool")
+    void options_shouldInterruptALateCarrier_andFreeItsThread() throws Exception {
+        CountDownLatch interrupted = new CountDownLatch(1);
+        Carrier stuck = new TestCarrier("Stuck", () -> {
+            try {
+                new CountDownLatch(1).await(30, TimeUnit.SECONDS);       // would hold the thread for 30 s
+            } catch (InterruptedException e) {
+                interrupted.countDown();
+                Thread.currentThread().interrupt();
+                throw new CarrierUnavailableException("Stuck was interrupted");
+            }
+            return option("Stuck", "1.000");
+        });
+
+        List<ShippingOption> options = service(stuck, answering("Works", "2.000")).options("KW");
+
+        assertAll(
+            () -> assertThat(options).extracting(ShippingOption::carrier).containsExactly("Works"),
+            () -> assertThat(interrupted.await(1, TimeUnit.SECONDS)).as("the late carrier was interrupted").isTrue());
+        long freeBy = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+        while (executor.getActiveCount() > 0 && System.nanoTime() < freeBy) {
+            Thread.onSpinWait();
+        }
+        assertThat(executor.getActiveCount()).as("busy carrier threads").isZero();
+    }
+
+    @Test
     @DisplayName("a full pool skips carriers instead of failing with a server error")
     void options_shouldSkipCarriersWithoutAFreeThread() {
         ThreadPoolExecutor tiny = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<>());

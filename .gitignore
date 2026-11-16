@@ -34,3 +34,5 @@ build/
 
 
 .env
+### Corporate network certificate (never commit it) ###
+company-root-ca.cer

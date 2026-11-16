@@ -203,6 +203,32 @@ class OrderFlowTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("a cancelled order does not use up the welcome coupon, a kept order does")
+    void preview_shouldStillApplyWelcomeCoupon_whenTheOnlyEarlierOrderWasCancelled() throws Exception {
+        long customer = customerId("customer01@example.com");
+        String preview = """
+                {"customerId": %d, "couponCode": "WELCOME10", "paymentMethod": "CARD", "lines": %s}"""
+            .formatted(customer, LINES);
+
+        String cancelled = orderNumberOf(place(newKey(), orderJson(customer, null, "CARD", GOOD_CARD, LINES))
+            .andExpect(status().isCreated()));
+        postJson("/api/v1/orders/" + cancelled + "/cancel", "{\"reason\": \"changed my mind\"}")
+            .andExpect(status().isOk());
+
+        postJson("/api/v1/pricing/preview", preview)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.promotions[0].id").value("R2"))
+            .andExpect(jsonPath("$.total").value("29.700"));
+
+        place(newKey(), orderJson(customer, null, "CARD", GOOD_CARD, LINES)).andExpect(status().isCreated());
+
+        postJson("/api/v1/pricing/preview", preview)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.promotions[0].id").value("R1"))
+            .andExpect(jsonPath("$.total").value("31.350"));
+    }
+
+    @Test
     @DisplayName("a later price change never alters an existing order")
     void getOrder_shouldKeepTheOriginalPrices_whenTheProductPriceChangesAfterwards() throws Exception {
         putProduct("TEST-SNAP-1", "5.000");
