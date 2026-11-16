@@ -100,7 +100,31 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/search/products?q=oud&size=
 
 Output:
 ```powershell
-
+content       : {@{sku=MH-OUD-100; name=Royal Oud 100ml; brand=MAISON; price=21.500}}
+page          : 0
+size          : 1
+totalElements : 6
+totalPages    : 6
+facets        : @{brand=System.Object[]; category=System.Object[]}
+```
+```powershell
+sku      : MH-OUD-50
+nameEn   : Royal Oud 50ml
+nameAr   : Ø¹Ù Ø¯ Ù Ù Ù Ù  50 Ù Ù
+brand    : MAISON
+category : fragrance
+price    : 9.900
+currency : KWD
+status   : ACTIVE
+version  : 1
+```
+```powershell
+content       : {@{sku=MH-OUD-100; name=Royal Oud 100ml; brand=MAISON; price=21.500}}
+page          : 0
+size          : 1
+totalElements : 6
+totalPages    : 6
+facets        : @{brand=System.Object[]; category=System.Object[]}
 ```
 
 **Shipping options**
