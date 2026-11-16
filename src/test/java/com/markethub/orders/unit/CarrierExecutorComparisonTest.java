@@ -49,7 +49,7 @@ class CarrierExecutorComparisonTest {
     }
 
     /** Sends the whole burst at the same instant, using the same latch idea as the M7 race tests. */
-    private Outcome run(Executor carrierExecutor) throws Exception {
+    private Outcome run(ExecutorService carrierExecutor) throws Exception {
         AtomicBoolean sawVirtualThread = new AtomicBoolean();
         ShippingService service = new ShippingService(
             List.of(blocking("A", sawVirtualThread), blocking("B", sawVirtualThread), blocking("C", sawVirtualThread)),
