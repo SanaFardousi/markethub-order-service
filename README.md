@@ -1,6 +1,6 @@
 # MarketHub Order & Search Service
 
-[![CI](https://github.com/SanaFardousi/markethub-order-service/actions/workflows/ci.yml/badge.svg)](https://github.com/SanaFarodusi/markethub-order-service/actions/workflows/ci.yml)
+[![CI](https://github.com/SanaFardousi/markethub-order-service/actions/workflows/ci.yml/badge.svg)](https://github.com/SanaFardousi/markethub-order-service/actions/workflows/ci.yml)
 
 ![Java](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-green?style=flat-square&logo=springboot&logoColor=white)
@@ -20,7 +20,7 @@ git clone https://github.com/SanaFardousi/markethub-order-service.git
 cd markethub-order-service
 docker compose up -d --build
 ```
-The first start builds the image and takes a few minutes. When `docker compose ps` shows the `app` service as `healthy`:
+The first start builds the image and takes a few minutes. On a company network, see [Building behind a corporate network](#building-behind-a-corporate-network) first. When `docker compose ps` shows the `app` service as `healthy`:
 
 | What | URL |
 |---|---|
@@ -30,6 +30,25 @@ The first start builds the image and takes a few minutes. When `docker compose p
 | Kafka UI | http://localhost:8090 |
 
 The compose file uses throwaway passwords for local use. For anything else, copy `.env.example` to `.env` and set real values.
+
+### Building behind a corporate network
+
+Some company networks inspect HTTPS traffic and re-sign it with their own root certificate. Maven inside the Docker build then fails to download dependencies with an error such as `PKIX path building failed` or `unable to find valid certification path`.
+
+**On a normal network you do not need to do anything.** The build uses the standard trusted certificates.
+
+**On a company network**, export your network's root certificate (ask your IT team, or export it from your browser) and save it in the project root as `company-root-ca.cer`:
+
+```
+markethub-order-service/
+├── company-root-ca.cer   <- your company's root certificate
+├── Dockerfile
+└── ...
+```
+
+Then build as usual with `docker compose up -d --build`. The Dockerfile adds the certificate to the build's trusted certificates when the file is there, and skips this step when it is not, so the same Dockerfile works on both kinds of network. The file name is in `.gitignore`, so it is never committed.
+
+The CI pipeline creates this file from the `NETWORK_CERTIFICATE` repository secret. If that secret is not set (for example in a fork), the file is empty and the step is skipped.
 
 ## Try it
 
