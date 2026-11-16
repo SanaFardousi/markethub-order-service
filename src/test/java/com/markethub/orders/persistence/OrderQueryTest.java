@@ -73,15 +73,17 @@ class OrderQueryTest extends AbstractPersistenceTest {
     }
 
     @Test
-    void countByCustomerId_shouldCountOnlyThatCustomersOrders() {
+    void countByCustomerIdAndStatusNot_shouldCountOnlyThatCustomersOrders_andSkipCancelledOnes() {
         Customer busy = savedCustomer("busy@example.com");
         Customer quiet = savedCustomer("quiet@example.com");
         orders.saveAndFlush(anOrder().withCustomer(busy).withOrderNumber("MH-C-1").build());
         orders.saveAndFlush(anOrder().withCustomer(busy).withOrderNumber("MH-C-2").build());
+        orders.saveAndFlush(anOrder().withCustomer(busy).withOrderNumber("MH-C-3")
+            .withStatus(OrderStatus.CANCELLED).build());
 
         assertAll(
-            () -> assertThat(orders.countByCustomerId(busy.getId())).isEqualTo(2),
-            () -> assertThat(orders.countByCustomerId(quiet.getId())).isZero());
+            () -> assertThat(orders.countByCustomerIdAndStatusNot(busy.getId(), OrderStatus.CANCELLED)).isEqualTo(2),
+            () -> assertThat(orders.countByCustomerIdAndStatusNot(quiet.getId(), OrderStatus.CANCELLED)).isZero());
     }
 
     @Test

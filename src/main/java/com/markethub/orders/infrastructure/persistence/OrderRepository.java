@@ -22,7 +22,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @EntityGraph(attributePaths = {"lines", "payment"})
     Optional<Order> findWithDetailsByOrderNumber(String orderNumber);
 
-    long countByCustomerId(Long customerId);
+    /** Orders of a customer that did not end up cancelled. Used for the welcome coupon (rule R2). */
+    long countByCustomerIdAndStatusNot(Long customerId, OrderStatus status);
 
     @EntityGraph(attributePaths = {"lines", "payment"})
     Optional<Order> findWithDetailsByIdempotencyKey(String idempotencyKey);

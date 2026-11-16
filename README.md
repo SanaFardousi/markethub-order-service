@@ -167,7 +167,7 @@ The rules live in `src/main/resources/rules/pricing/` as Drools DRL files. Java 
 | Id | Rule | Detail |
 |---|---|---|
 | R1 | Basket tier | Subtotal of 20.000 KWD or more gets 5%, and 50.000 or more gets 10%. Only the highest tier applies. |
-| R2 | Welcome coupon | `WELCOME10` gives 10% off, capped at 5.000 KWD, only for a customer with no earlier orders. |
+| R2 | Welcome coupon | `WELCOME10` gives 10% off, capped at 5.000 KWD, only for a customer with no earlier orders. Cancelled orders do not count. |
 | R3 | No stacking | R1 and R2 never stack. The customer gets the larger. |
 | R4 | Shipping | Free for GOLD customers, or when subtotal minus discount is 15.000 or more. Otherwise 1.500. |
 | F1 | Fraud hold | Cash on delivery with a total above 100.000 puts the order on hold for manual approval. |

@@ -4,6 +4,7 @@ package com.markethub.orders.application;
 import com.markethub.orders.domain.exception.ConflictException;
 import com.markethub.orders.domain.exception.NotFoundException;
 import com.markethub.orders.domain.model.Customer;
+import com.markethub.orders.domain.model.OrderStatus;
 import com.markethub.orders.domain.model.Product;
 import com.markethub.orders.domain.model.ProductStatus;
 import com.markethub.orders.domain.payment.PaymentMethod;
@@ -90,9 +91,10 @@ public class PricingService {
 
         Basket basket = new Basket(lines, couponCode, paymentMethod);
 
+        // A cancelled order does not count as an earlier order, so the customer keeps the welcome coupon
         CustomerFact customerFact = new CustomerFact(
             customer.getTier(),
-            orders.countByCustomerId(customerId));
+            orders.countByCustomerIdAndStatusNot(customerId, OrderStatus.CANCELLED));
 
         // Calculate pricing and return both results together
         PricingResult pricing = engine.price(basket, customerFact);
