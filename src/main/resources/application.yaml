@@ -3,8 +3,6 @@ spring:
     name: markethub-order-service
   profiles:
     default: local
-  elasticsearch:
-    uris: ${ELASTICSEARCH_URL:http://localhost:9200}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -29,7 +27,7 @@ markethub:
   outbox:
     poll-interval: PT0.5S
   search:
-    url: ${ELASTICSEARCH_URL:http://localhost:9200}
+    url: ${ELASTICSEARCH_URL:http://localhost:9200}   # the only Elasticsearch address (see ElasticsearchConfig)
   carriers:
     executor: platform
 

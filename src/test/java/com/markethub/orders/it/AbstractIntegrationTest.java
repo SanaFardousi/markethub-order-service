@@ -36,7 +36,6 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.datasource.username", SharedMySql.INSTANCE::getUsername);
         registry.add("spring.datasource.password", SharedMySql.INSTANCE::getPassword);
         registry.add("markethub.search.url", SharedElasticsearch::url);
-        registry.add("spring.elasticsearch.uris", SharedElasticsearch::url);
     }
 
     @BeforeEach
