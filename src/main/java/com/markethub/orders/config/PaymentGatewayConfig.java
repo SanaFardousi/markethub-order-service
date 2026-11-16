@@ -1,15 +1,14 @@
 package com.markethub.orders.config;
 
-import java.time.Duration;
-
+import com.markethub.orders.application.PaymentGateway;
+import com.markethub.orders.application.RetryingPaymentGateway;
+import com.markethub.orders.infrastructure.provider.fakepay.FakePayGateway;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import com.markethub.orders.application.PaymentGateway;
-import com.markethub.orders.application.RetryingPaymentGateway;
-import com.markethub.orders.infrastructure.provider.fakepay.FakePayGateway;
+import java.time.Duration;
 
 @Configuration
 public class PaymentGatewayConfig {

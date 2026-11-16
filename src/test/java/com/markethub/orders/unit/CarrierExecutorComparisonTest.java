@@ -1,29 +1,21 @@
 package com.markethub.orders.unit;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import com.markethub.orders.application.Carrier;
 import com.markethub.orders.application.ShippingOption;
 import com.markethub.orders.application.ShippingService;
 import com.markethub.orders.config.ExecutorConfig;
 import com.markethub.orders.domain.exception.NoCarrierAvailableException;
-
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;

@@ -1,5 +1,10 @@
 package com.markethub.orders.application;
 
+import com.markethub.orders.domain.exception.NoCarrierAvailableException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -7,13 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
-import com.markethub.orders.domain.exception.NoCarrierAvailableException;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service

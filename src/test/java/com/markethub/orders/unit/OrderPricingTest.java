@@ -1,12 +1,11 @@
 package com.markethub.orders.unit;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.markethub.orders.domain.model.Order;
 import com.markethub.orders.domain.pricing.PricingResult;
+import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 import static com.markethub.orders.OrderFixtures.anOrder;
 import static org.assertj.core.api.Assertions.assertThat;

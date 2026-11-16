@@ -1,9 +1,9 @@
 package com.markethub.orders.infrastructure.search;
 
-import java.math.BigDecimal;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.markethub.orders.domain.model.Product;
+
+import java.math.BigDecimal;
 
 public record ProductDocument(
     String sku,

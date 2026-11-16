@@ -7,8 +7,9 @@ import com.markethub.orders.application.ProductView;
 import com.markethub.orders.infrastructure.persistence.OrderSummary;
 import com.markethub.orders.web.dto.*;
 import org.mapstruct.Mapper;
-import java.math.BigDecimal;
 import org.mapstruct.Mapping;
+
+import java.math.BigDecimal;
 
 
 @Mapper(componentModel = "spring")

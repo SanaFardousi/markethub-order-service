@@ -16,7 +16,7 @@ A Spring Boot service for a Gulf e-commerce store. It prices baskets with Drools
 You need Docker (at least 6 GB of memory) and nothing else.
 
 ```powershell
-git clone https://github.com/<your-user>/markethub-order-service.git
+git clone https://github.com/SanaFardousi/markethub-order-service.git
 cd markethub-order-service
 docker compose up -d --build
 ```

@@ -1,17 +1,14 @@
 package com.markethub.orders.unit;
 
-import java.math.BigDecimal;
-
-import org.junit.jupiter.api.Test;
-
 import com.markethub.orders.application.CardDetails;
 import com.markethub.orders.application.GatewayResult;
 import com.markethub.orders.domain.exception.PaymentTimeoutException;
 import com.markethub.orders.infrastructure.provider.fakepay.FakePayGateway;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.math.BigDecimal;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 class FakePayGatewayTest {

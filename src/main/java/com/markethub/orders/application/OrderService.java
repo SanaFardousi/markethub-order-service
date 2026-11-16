@@ -13,6 +13,7 @@ import com.markethub.orders.infrastructure.outbox.OutboxWriter;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
 import com.markethub.orders.infrastructure.persistence.OrderSummary;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -31,7 +32,6 @@ import java.time.Instant;
 import java.time.Year;
 import java.util.HexFormat;
 import java.util.UUID;
-import io.micrometer.core.instrument.MeterRegistry;
 
 @Service
 @RequiredArgsConstructor

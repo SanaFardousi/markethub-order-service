@@ -1,10 +1,9 @@
 package com.markethub.orders.unit;
 
+import com.markethub.orders.config.AppProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-
-import com.markethub.orders.config.AppProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

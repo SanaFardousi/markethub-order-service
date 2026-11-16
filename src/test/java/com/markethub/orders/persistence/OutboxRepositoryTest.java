@@ -5,13 +5,14 @@ import com.markethub.orders.infrastructure.outbox.OutboxEvent;
 import com.markethub.orders.infrastructure.outbox.OutboxRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static com.markethub.orders.persistence.PersistenceFixtures.NOW;
 import static org.assertj.core.api.Assertions.assertThat;
-import java.time.Instant;
-import java.util.UUID;
 
 class OutboxRepositoryTest extends AbstractPersistenceTest {
 

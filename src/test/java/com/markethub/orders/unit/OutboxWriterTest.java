@@ -25,9 +25,7 @@ import static com.markethub.orders.OrderFixtures.NOW;
 import static com.markethub.orders.OrderFixtures.anOrder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OutboxWriterTest {

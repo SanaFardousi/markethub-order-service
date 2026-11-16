@@ -1,7 +1,8 @@
 package com.markethub.orders.domain.model;
 
-import java.util.Arrays;
 import com.markethub.orders.domain.exception.BadRequestException;
+
+import java.util.Arrays;
 
 
 public enum SearchSort {

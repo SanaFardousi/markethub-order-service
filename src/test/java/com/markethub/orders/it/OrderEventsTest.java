@@ -1,17 +1,17 @@
 package com.markethub.orders.it;
 
+import com.jayway.jsonpath.JsonPath;
 import com.markethub.orders.infrastructure.kafka.Topics;
+import com.markethub.orders.it.KafkaTestSupport.Collector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import com.jayway.jsonpath.JsonPath;
-import org.springframework.http.MediaType;
 import java.util.UUID;
-import com.markethub.orders.it.KafkaTestSupport.Collector;
 
 import static com.markethub.orders.it.KafkaTestSupport.eventTypesFor;
 import static org.assertj.core.api.Assertions.assertThat;

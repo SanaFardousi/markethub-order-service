@@ -1,13 +1,12 @@
 package com.markethub.orders.application;
 
+import com.markethub.orders.domain.exception.PaymentTimeoutException;
+import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import com.markethub.orders.domain.exception.PaymentTimeoutException;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RetryingPaymentGateway implements PaymentGateway {

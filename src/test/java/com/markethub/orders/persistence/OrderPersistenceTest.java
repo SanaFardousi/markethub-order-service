@@ -6,16 +6,12 @@ import com.markethub.orders.domain.model.Order;
 import com.markethub.orders.domain.payment.CardPayment;
 import com.markethub.orders.infrastructure.persistence.CustomerRepository;
 import com.markethub.orders.infrastructure.persistence.OrderRepository;
-import com.markethub.orders.infrastructure.persistence.OrderSummary;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.markethub.orders.persistence.PersistenceFixtures.customer;

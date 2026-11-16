@@ -3,6 +3,7 @@ package com.markethub.orders.unit;
 import com.markethub.orders.config.ExecutorConfig;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import java.util.concurrent.ExecutorService;
 
 class ExecutorConfigTest {
 

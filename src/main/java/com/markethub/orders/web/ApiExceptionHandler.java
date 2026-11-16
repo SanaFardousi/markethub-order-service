@@ -3,6 +3,7 @@ package com.markethub.orders.web;
 import com.markethub.orders.domain.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
-import org.slf4j.MDC;
-import com.markethub.orders.domain.exception.PaymentTimeoutException;
 
 @Slf4j
 @RestControllerAdvice

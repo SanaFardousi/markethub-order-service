@@ -1,16 +1,14 @@
 package com.markethub.orders.application;
 
-import java.math.BigDecimal;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import com.markethub.orders.domain.model.ProductSearchQuery;
 import com.markethub.orders.domain.model.ProductSearchResult;
 import com.markethub.orders.domain.model.SearchSort;
 import com.markethub.orders.infrastructure.search.ProductSearchRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor

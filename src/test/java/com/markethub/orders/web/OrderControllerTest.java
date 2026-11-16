@@ -23,23 +23,23 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import static com.markethub.orders.OrderFixtures.NOW;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Stream;
-import org.springframework.http.MediaType;
+
+import static com.markethub.orders.OrderFixtures.NOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import com.markethub.orders.domain.exception.PaymentTimeoutException;
 
 @WebMvcTest(OrderController.class)
 @Import({ApiMapperImpl.class, FixedClockConfig.class, ApiExceptionHandler.class})

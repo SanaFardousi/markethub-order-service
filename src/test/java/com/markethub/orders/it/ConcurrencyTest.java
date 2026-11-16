@@ -1,8 +1,5 @@
 package com.markethub.orders.it;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.*;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
@@ -10,11 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.Callable;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
