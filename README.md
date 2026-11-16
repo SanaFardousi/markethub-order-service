@@ -172,6 +172,27 @@ Loading an order’s payment is a single table read with no join, whereas JOINED
 ### Events and delivery guarantees:
 **Why an outbox.** MySQL and Kafka can't be committed together. Writing to Kafka inside the transaction risks announcing a rolled-back order; writing after risks losing the event on a crash. Instead, each change writes an outbox_event row in the same transaction. OutboxRelay publishes those rows separately.
 
+**Demonstration: stopping the app before the relay runs loses nothing.** The relay was slowed to one run every 10 minutes (`MARKETHUB_OUTBOX_POLL_INTERVAL=PT10M`) and an order was placed. Its two outbox rows were in MySQL with `published_at` empty, and Kafka held no message for the order. The application was then stopped and started again with the normal interval.
+
+Before the restart, the outbox rows:
+```
+event_type      aggregate_id    published_at
+OrderPlaced     MH-2026-000002  NULL
+OrderConfirmed  MH-2026-000002  NULL
+```
+After the restart, the same rows and the messages found in Kafka:
+```
+event_type      published_at
+OrderPlaced     2026-11-16 08:53:23.820852
+OrderConfirmed  2026-11-16 08:53:23.842401
+
+type           aggregateId    occurredAt
+----           -----------    ----------
+OrderPlaced    MH-2026-000002 2026-11-16T08:50:48.330Z
+OrderConfirmed MH-2026-000002 2026-11-16T08:50:48.345Z
+```
+The events were published on restart, in the order they were written. This works because an order and its outbox rows are committed in one transaction, so a crash can only happen before both exist or after both exist. The relay sends every row that has no `published_at`, so it picks up whatever the previous run left behind.
+
 **Delivery is at-least-once.** The relay marks a row published only after Kafka acknowledges it. If the app stops in between, the row is sent again on the next run. No event is lost, but duplicates are possible, so consumers must tolerate them.
 
 **What idempotence protects against.** With enable.idempotence=true, the producer tags each message with a producer id and sequence number. On retry, the broker recognises the repeat and keeps one copy, preserving order within a partition. With acks=all, an acknowledged message is stored by all in-sync replicas.
