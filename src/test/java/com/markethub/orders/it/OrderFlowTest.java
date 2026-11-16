@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 class OrderFlowTest extends AbstractIntegrationTest {
 
@@ -203,5 +204,29 @@ class OrderFlowTest extends AbstractIntegrationTest {
             () -> assertThat(countOf("orders")).isZero(),
             () -> assertThat(countOf("payment")).isZero(),
             () -> assertThat(countOf("outbox_event")).isZero());
+    }
+
+    @Test
+    @DisplayName("a later price change never alters an existing order")
+    void getOrder_shouldKeepTheOriginalPrices_whenTheProductPriceChangesAfterwards() throws Exception {
+        putProduct("TEST-SNAP-1", "5.000");
+        long customer = customerId("customer01@example.com");
+        String number = orderNumberOf(place(newKey(), orderJson(customer, null, "CARD", GOOD_CARD,
+            "[{\"sku\": \"TEST-SNAP-1\", \"quantity\": 2}]")).andExpect(status().isCreated()));
+
+        putProduct("TEST-SNAP-1", "7.000");
+
+        mvc.perform(get("/api/v1/orders/" + number))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.lines[0].unitPrice").value("5.000"))
+            .andExpect(jsonPath("$.subtotal").value("10.000"))
+            .andExpect(jsonPath("$.total").value("11.500"));      // 10.000 + 1.500 shipping
+    }
+
+    private void putProduct(String sku, String price) throws Exception {
+        mvc.perform(put("/api/v1/admin/products/" + sku).contentType(MediaType.APPLICATION_JSON).content("""
+                    {"nameEn": "Snapshot test", "nameAr": "test", "brand": "MAISON", "category": "tc-snapshot",
+                     "price": %s, "status": "ACTIVE"}""".formatted(price)))
+            .andExpect(status().isOk());
     }
 }
